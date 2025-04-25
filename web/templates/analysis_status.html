@@ -1,0 +1,45 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Analysis Status - Sentinel AI</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <header>
+        <h1>Sentinel AI</h1>
+        <h2>Analysis Status</h2>
+        <nav>
+            <ul>
+                <li><a href="{{ url_for('index') }}">Home</a></li>
+                <li><a href="{{ url_for('analyze') }}">Analyze</a></li>
+                <li><a href="{{ url_for('search') }}">Search</a></li>
+                <li><a href="{{ url_for('reports_list') }}">Reports</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <section class="analysis-status-section" style="max-width: 600px; margin: 2rem auto; padding: 2rem; background-color: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); text-align: center;">
+        <h2>Analysis Status for ID: {{ status.id }}</h2>
+
+        <p><strong>Status:</strong> {{ status.status }}</p>
+        <p><strong>Progress:</strong> {{ status.progress }}%</p>
+        <p><strong>Started:</strong> {{ status.start_time }}</p>
+        {% if status.status == 'completed' %}
+            <p><strong>Completed:</strong> {{ status.completion_time }}</p>
+            {# Add a link to results if applicable and available #}
+            {# <a href="{{ url_for('analysis_results', analysis_id=status.id) }}" class="button">View Results</a> #}
+        {% endif %}
+
+         <div style="margin-top: 2rem;">
+             <a href="{{ url_for('analyze') }}" class="button">Start New Analysis</a>
+         </div>
+
+    </section>
+
+    <footer>
+        <p>&copy; 2024 Sentinel AI Platform</p>
+    </footer>
+</body>
+</html>
+             

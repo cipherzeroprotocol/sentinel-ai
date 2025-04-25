@@ -1,0 +1,56 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Reports - Sentinel AI</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <header>
+        <h1>Sentinel AI</h1>
+        <h2>Analysis Reports</h2>
+        <nav>
+            <ul>
+                <li><a href="{{ url_for('index') }}">Home</a></li>
+                <li><a href="{{ url_for('analyze') }}">Analyze</a></li>
+                <li><a href="{{ url_for('search') }}">Search</a></li>
+                <li><a href="{{ url_for('reports_list') }}">Reports</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <section class="reports-list">
+        <h2>Generated Reports</h2>
+
+        {% if reports %}
+            <table class="report-table">
+                <thead>
+                    <tr>
+                        <th>Report ID</th>
+                        <th>Address/Token</th>
+                        <th>Timestamp</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for report in reports %}
+                        <tr>
+                            <td>{{ report.id }}</td>
+                            <td>{{ report.address }}</td>
+                            <td>{{ report.timestamp }}</td>
+                            <td><a href="{{ url_for('report_details', report_id=report.id) }}">View Details</a></td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p>No reports have been generated yet.</p>
+        {% endif %}
+    </section>
+
+    <footer>
+        <p>&copy; 2024 Sentinel AI Platform</p>
+    </footer>
+</body>
+</html>
+            

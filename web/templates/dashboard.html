@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sentinel AI - Blockchain Security Analysis</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/">Sentinel AI</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/">Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/reports">Reports</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card bg-light mb-4">
+                    <div class="card-body">
+                        <h2 class="card-title">Solana Security Analysis</h2>
+                        <p class="card-text">Enter a Solana address or token to analyze its security profile and detect potential threats.</p>
+                        
+                        <div class="input-group mb-3">
+                            <input type="text" class="form-control" id="addressInput" placeholder="Enter Solana address or token">
+                            <button class="btn btn-primary" type="button" id="analyzeBtn">Analyze</button>
+                        </div>
+                        
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="analysisType" id="allAnalysis" value="all" checked>
+                            <label class="form-check-label" for="allAnalysis">All Analyses</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="analysisType" id="icoAnalysis" value="ico">
+                            <label class="form-check-label" for="icoAnalysis">ICO Analysis</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="analysisType" id="moneyLaundering" value="money_laundering">
+                            <label class="form-check-label" for="moneyLaundering">Money Laundering</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="analysisType" id="rugpull" value="rugpull">
+                            <label class="form-check-label" for="rugpull">Rugpull Risk</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="analysisType" id="mixer" value="mixer">
+                            <label class="form-check-label" for="mixer">Mixer Detection</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="analysisType" id="dusting" value="dusting">
+                            <label class="form-check-label" for="dusting">Address Poisoning</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row" id="analysisResultsContainer" style="display: none;">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h4>Analysis Results</h4>
+                    </div>
+                    <div class="card-body" id="analysisResults">
+                        <div class="d-flex justify-content-center">
+                            <div class="spinner-border text-primary" role="status" id="loadingSpinner">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mt-4">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h4>Recent Analyses</h4>
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-group" id="recentAnalysesList">
+                            <!-- This will be populated via JavaScript -->
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h4>High Risk Entities</h4>
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-group" id="highRiskEntitiesList">
+                            <!-- This will be populated via JavaScript -->
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="bg-light mt-5 py-3">
+        <div class="container text-center">
+            <p>Sentinel AI - Solana Blockchain Security Analysis Platform</p>
+        </div>
+    </footer>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+</body>
+</html>

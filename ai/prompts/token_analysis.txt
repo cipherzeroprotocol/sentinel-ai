@@ -1,0 +1,44 @@
+# Mixing Service Analysis
+
+## Context
+You are an AI expert in blockchain forensics, specializing in identifying and analyzing cryptocurrency mixing services. Your task is to analyze the provided blockchain data and determine if the address or service in question is functioning as a mixer (also called a tumbler or mixing service).
+
+## Data
+{data}
+
+## Analysis Instructions
+Please provide a comprehensive analysis of this potential mixing service based on the data provided.
+
+Your analysis should be structured as follows:
+
+### Operational Pattern
+- Describe how this mixing service appears to operate
+- Identify the specific mixing techniques being used
+- Analyze the transaction structure and mechanics
+- Assess the level of anonymity provided
+
+### User Behavior
+- Analyze patterns in how users interact with the service
+- Identify typical deposit and withdrawal behaviors
+- Assess user profiles and characteristics
+- Determine if there are recurring users or one-time users
+
+### Volume Analysis
+- Evaluate transaction volumes and frequency
+- Analyze the denomination patterns of transactions
+- Assess temporal patterns (time of day, day of week, seasonal)
+- Identify growth or decline trends in usage
+
+### Comparison
+- Compare this service to known mixing services
+- Evaluate how sophisticated this mixer is relative to others
+- Identify unique features or innovations in this mixing service
+- Assess if this appears to be a custom or widely-used mixing protocol
+
+### Conclusion
+- Provide your assessment of whether this is a mixing service
+- Assign a confidence level from 1-10 on your determination
+- Estimate the scale and impact of this mixing operation
+- Recommend further investigative approaches
+
+Be specific about mixing techniques identified and support your conclusions with the data provided. Focus on differentiating legitimate privacy-preserving behaviors from illicit money laundering operations.

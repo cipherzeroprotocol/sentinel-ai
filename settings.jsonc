@@ -1,0 +1,6 @@
+{
+    "python.analysis.extraPaths": [
+        "." // Tells Pylance to look for packages in the current workspace root
+    ]
+    // You might have other settings here
+}

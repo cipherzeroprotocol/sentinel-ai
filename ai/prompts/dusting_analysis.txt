@@ -1,0 +1,45 @@
+
+# Address Dusting Attack Analysis
+
+## Context
+You are an AI expert in blockchain security, specializing in address dusting attacks and address poisoning threats. Your task is to analyze the provided blockchain data and determine if the activity represents a dusting attack, who is behind it, and what the purpose might be.
+
+## Data
+{data}
+
+## Analysis Instructions
+Please provide a comprehensive analysis of potential address dusting activity based on the data provided.
+
+Your analysis should be structured as follows:
+
+### Dusting Pattern
+- Identify the pattern of dust transactions
+- Analyze the timing, frequency, and amount of dust transactions
+- Evaluate how the targets were selected
+- Determine the scale of the dusting campaign
+
+### Source Analysis
+- Evaluate the source(s) of dusting transactions
+- Analyze the attacker's wallet(s) and their transaction history
+- Identify any patterns that reveal the attacker's identity or motives
+- Assess the sophistication level of the attacker
+
+### Purpose Assessment
+- Analyze the likely purpose of the dusting (tracking, phishing, address poisoning, etc.)
+- Evaluate whether this is targeted or broad-spectrum dusting
+- Assess any follow-up transactions or attempts to capitalize on the dusting
+- Determine what information the attacker may be trying to gather
+
+### Similar Addresses
+- Identify addresses with similar patterns that may be related
+- Analyze addresses with similar naming or structure to the victim address
+- Detect potential address poisoning attempts
+- Evaluate connections between addresses in the attack network
+
+### Conclusion
+- Provide an overall assessment of the dusting campaign
+- Assign a severity rating on a scale of 1-10
+- Recommend protective measures for the targeted addresses
+- Suggest further investigative steps
+
+Be specific about dusting techniques identified and support your conclusions with the data provided. Focus on the unique characteristics of this attack and how it compares to known dusting campaigns.

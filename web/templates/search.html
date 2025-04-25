@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Search - Sentinel AI</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <header>
+        <h1>Sentinel AI</h1>
+        <h2>Search Entities</h2>
+        <nav>
+            <ul>
+                <li><a href="{{ url_for('index') }}">Home</a></li>
+                <li><a href="{{ url_for('analyze') }}">Analyze</a></li>
+                <li><a href="{{ url_for('search') }}">Search</a></li>
+                <li><a href="{{ url_for('reports_list') }}">Reports</a></li> {# Added Reports Link #}
+            </ul>
+        </nav>
+    </header>
+
+    <section class="search-form">
+        <h2>Search for Addresses or Tokens</h2>
+        <form method="get" action="{{ url_for('search') }}">
+            <div class="search-box">
+                <input type="text" name="query" placeholder="Enter Solana address or token mint" value="{{ query|default('') }}" required>
+                <button type="submit">Search</button>
+            </div>
+        </form>
+    </section>
+
+    {% if query %}
+        <section class="search-results">
+            <h2>Results for "{{ query }}"</h2>
+
+            {% if results %}
+                {% for result in results %}
+                    <div class="result-item">
+                        {# Display basic info from search result #}
+                        <h3>{{ result.type|title }}: {{ result.name or result.address }}</h3>
+                        <div class="result-address">Address: {{ result.address }}</div>
+                        {% if result.risk_score is defined and result.risk_score is not none %}
+                            <div class="result-risk">Risk score: {{ result.risk_score }}/100</div>
+                        {% endif %}
+                         {% if result.last_seen %}
+                            <div class="result-last-seen">Last Seen: {{ result.last_seen }}</div>
+                         {% endif %}
+
+                        {# Provide relevant analysis links based on type #}
+                        <div class="result-actions">
+                            {% if result.type == 'token' %}
+                                <a href="{{ url_for('analyze_rugpull', token=result.address) }}" class="button">Analyze Rugpull Risk</a>
+                                <a href="{{ url_for('analyze_ico', token=result.address) }}" class="button">Analyze ICO</a>
+                            {% elif result.type == 'wallet' or result.type == 'address' %} {# Handle both 'wallet' and generic 'address' #}
+                                <a href="{{ url_for('analyze_wallet', address=result.address) }}" class="button">Profile Wallet</a>
+                                <a href="{{ url_for('analyze_money_laundering', address=result.address) }}" class="button">Check Money Laundering</a>
+                                <a href="{{ url_for('analyze_mixer', address=result.address) }}" class="button">Check Mixer Activity</a>
+                                <a href="{{ url_for('analyze_dusting', address=result.address) }}" class="button">Check Address Poisoning</a>
+                                <a href="{{ url_for('analyze_transaction', address=result.address) }}" class="button">Analyze Transactions</a>
+                            {% else %}
+                                 <a href="{{ url_for('analyze', address=result.address) }}" class="button">Analyze Address</a>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="no-results">
+                    <p>No entities found matching "{{ query }}".</p>
+                    <p>You can still try analyzing this address/token directly:</p>
+                     <div class="result-actions" style="justify-content: center;">
+                         {# Offer generic analysis options even if not found #}
+                         <a href="{{ url_for('analyze_wallet', address=query) }}" class="button">Profile as Wallet</a>
+                         <a href="{{ url_for('analyze_rugpull', token=query) }}" class="button">Analyze as Token</a>
+                     </div>
+                </div>
+            {% endif %}
+        </section>
+    {% endif %}
+
+    <footer>
+        <p>&copy; 2024 Sentinel AI Platform</p> {# Updated year #}
+    </footer>
+</body>
+</html>

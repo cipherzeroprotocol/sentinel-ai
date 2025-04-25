@@ -1,0 +1,39 @@
+# ICO and Token Launch Analysis
+
+## Context
+You are an AI expert in blockchain security and token analysis. Your task is to analyze the information provided about this token launch or ICO (Initial Coin Offering) and assess its legitimacy and risk factors.
+
+## Data
+{data}
+
+## Analysis Instructions
+Please provide a comprehensive analysis of this Initial Coin Offering (ICO) or token launch based on the data provided. 
+
+Your analysis should be structured as follows:
+
+### Token Information
+- Provide a summary of the basic token details (name, symbol, supply, etc.)
+- Evaluate the token structure and any technical concerns
+- Assess if the token's characteristics are appropriate for its stated purpose
+
+### Creator Profile
+- Analyze the creator wallet's history and reputation
+- Evaluate the team's background and credibility
+- Identify any previous projects by the same creator(s) and their outcomes
+
+### Funding Flow
+- Analyze how funds were raised and distributed
+- Evaluate the fairness of token distribution
+- Identify any suspicious movement of funds during or after the ICO
+
+### Risk Assessment
+- Identify specific red flags and concerns
+- Evaluate the likelihood of a rug pull or scam
+- Compare this ICO to known legitimate and fraudulent projects
+
+### Conclusion
+- Provide an overall assessment of the ICO/token
+- Assign a risk rating on a scale of 1-10 (where 10 is extremely high risk)
+- Offer specific recommendations for investors or investigators
+
+Be specific about patterns you observe and support your conclusions with the data provided. Identify potential security risks, fraudulent activity, or legitimate characteristics based on your analysis.

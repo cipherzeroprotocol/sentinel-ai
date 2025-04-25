@@ -1,0 +1,64 @@
+{
+  "users": [
+    {
+      "id": "e98977c7-f768-4784-9ed3-5681ff6b3b9a",
+      "email": "admin@sentinel.ai",
+      "password": "$2a$12$JG9I9FkWOt8xKuX1uuoqs.WsfQm/YPerE5Dll4LkpOuYl.qNdEMZm",
+      "name": "Admin",
+      "role": "ADMIN",
+      "apiTokens": [],
+      "preferences": {
+        "theme": "system",
+        "notifications": {
+          "email": true,
+          "inApp": true
+        },
+        "visualizations": {
+          "showRiskMetrics": true
+        }
+      },
+      "createdAt": "2025-04-25T13:24:43.918Z",
+      "updatedAt": "2025-04-25T13:24:43.918Z"
+    },
+    {
+      "id": "ce55b1f6-5c88-4af1-903e-c73b4917b0c8",
+      "email": "analyst@sentinel.ai",
+      "password": "$2a$12$GQISkThqcgk.jNYYbTeZpudV7/ZLDGoUQ5.Rmytuj03VhxV9f6j1u",
+      "name": "Security Analyst",
+      "role": "ANALYST",
+      "apiTokens": [],
+      "preferences": {
+        "theme": "system",
+        "notifications": {
+          "email": true,
+          "inApp": true
+        },
+        "visualizations": {
+          "showRiskMetrics": true
+        }
+      },
+      "createdAt": "2025-04-25T13:24:44.322Z",
+      "updatedAt": "2025-04-25T13:24:44.322Z"
+    },
+    {
+      "id": "fd28f40e-2daa-4eaa-ade1-27025b910da2",
+      "email": "user@sentinel.ai",
+      "password": "$2a$12$aV5qLPuRAzSase1rNpCCaub2hBnabKnK26btGO3t24/EG7WNQg9eS",
+      "name": "Regular User",
+      "role": "USER",
+      "apiTokens": [],
+      "preferences": {
+        "theme": "system",
+        "notifications": {
+          "email": true,
+          "inApp": true
+        },
+        "visualizations": {
+          "showRiskMetrics": true
+        }
+      },
+      "createdAt": "2025-04-25T13:24:44.697Z",
+      "updatedAt": "2025-04-25T13:24:44.697Z"
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+2025-04-24 22:24:33,244 - data.storage.address_db - INFO - Database initialized
+2025-04-24 22:26:34,496 - data.storage.address_db - INFO - Database initialized
+2025-04-24 22:27:06,222 - data.storage.address_db - INFO - Database initialized
+2025-04-24 22:27:06,573 - __main__ - ERROR - Error starting web server: __init__() takes 1 positional argument but 2 were given
+2025-04-24 22:33:09,237 - data.storage.address_db - INFO - Database initialized
+2025-04-24 22:33:09,433 - __main__ - ERROR - Error starting web server: __init__() takes 1 positional argument but 2 were given
+2025-04-24 22:36:01,883 - data.storage.address_db - INFO - Database initialized
+2025-04-24 23:32:46,621 - data.storage.address_db - INFO - Database initialized
+2025-04-24 23:36:46,124 - data.storage.address_db - INFO - Database initialized

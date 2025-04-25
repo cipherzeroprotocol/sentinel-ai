@@ -1,0 +1,36 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Error - Sentinel AI</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <header>
+        <h1>Sentinel AI</h1>
+        <h2>Error</h2>
+        <nav>
+            <ul>
+                <li><a href="{{ url_for('index') }}">Home</a></li>
+                <li><a href="{{ url_for('analyze') }}">Analyze</a></li>
+                <li><a href="{{ url_for('search') }}">Search</a></li>
+                <li><a href="{{ url_for('reports_list') }}">Reports</a></li> {# Added Reports Link #}
+            </ul>
+        </nav>
+    </header>
+
+    <section class="error-section">
+        <div class="error-container">
+            <h2>An Error Occurred</h2>
+            <p class="error-message">{{ error | default('An unexpected error occurred. Please try again later.') }}</p>
+            <a href="{{ url_for('index') }}" class="button">Return to Home</a>
+            <a href="{{ url_for('analyze') }}" class="button">Try Analysis Again</a>
+        </div>
+    </section>
+
+    <footer>
+        <p>&copy; 2024 Sentinel AI Platform</p> {# Updated year #}
+    </footer>
+</body>
+</html>
+            

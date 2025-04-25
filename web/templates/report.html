@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Security Report - Sentinel AI</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/">Sentinel AI</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/reports">Reports</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4 mb-5">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h2>Security Analysis Report</h2>
+                <div>
+                    <span class="badge bg-primary">Report ID: {{ report.id }}</span>
+                    <span class="badge bg-info">{{ report.created_at }}</span>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <h4>Address Information</h4>
+                        <div class="mb-2">
+                            <strong>Address:</strong> <code>{{ report.address }}</code>
+                        </div>
+                        <div class="mb-2">
+                            <strong>First Seen:</strong> {{ report.address_info.first_seen }}
+                        </div>
+                        <div class="mb-2">
+                            <strong>Last Activity:</strong> {{ report.address_info.last_seen }}
+                        </div>
+                        <div class="mb-2">
+                            <strong>Network:</strong> {{ report.address_info.network }}
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <h4>Risk Assessment</h4>
+                        <div class="progress mb-2" style="height: 30px;">
+                            <div class="progress-bar progress-bar-striped 
+                                {% if report.risk_score < 30 %}bg-success
+                                {% elif report.risk_score < 70 %}bg-warning
+                                {% else %}bg-danger{% endif %}"
+                                role="progressbar" style="width: {{ report.risk_score }}%">
+                                {{ report.risk_score }}%
+                            </div>
+                        </div>
+                        <div class="alert 
+                            {% if report.risk_score < 30 %}alert-success
+                            {% elif report.risk_score < 70 %}alert-warning
+                            {% else %}alert-danger{% endif %}">
+                            <strong>Risk Level:</strong> 
+                            {% if report.risk_score < 30 %}Low Risk
+                            {% elif report.risk_score < 70 %}Medium Risk
+                            {% else %}High Risk{% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <hr>
+
+                <!-- Executive Summary -->
+                <div class="row mb-4">
+                    <div class="col-md-12">
+                        <h3>Executive Summary</h3>
+                        <div class="card">
+                            <div class="card-body">
+                                {{ report.executive_summary|safe }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Risk Factors -->
+                <div class="row mb-4">
+                    <div class="col-md-12">
+                        <h3>Risk Factors</h3>
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Risk Factor</th>
+                                    <th>Severity</th>
+                                    <th>Description</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for factor in report.risk_factors %}
+                                <tr>
+                                    <td>{{ factor.name }}</td>
+                                    <td>
+                                        <span class="badge 
+                                            {% if factor.severity == 'high' %}bg-danger
+                                            {% elif factor.severity == 'medium' %}bg-warning
+                                            {% else %}bg-info{% endif %}">
+                                            {{ factor.severity }}
+                                        </span>
+                                    </td>
+                                    <td>{{ factor.description }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Analysis Tabs -->
+                <ul class="nav nav-tabs" id="analysisTab" role="tablist">
+                    {% if report.results.ico %}
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="ico-tab" data-bs-toggle="tab" data-bs-target="#ico" type="button" role="tab">ICO Analysis</button>
+                    </li>
+                    {% endif %}
+                    
+                    {% if report.results.money_laundering %}
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link {% if not report.results.ico %}active{% endif %}" id="ml-tab" data-bs-toggle="tab" data-bs-target="#ml" type="button" role="tab">Money Laundering</button>
+                    </li>
+                    {% endif %}
+                    
+                    {% if report.results.rugpull %}
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link {% if not report.results.ico and not report.results.money_laundering %}active{% endif %}" id="rugpull-tab" data-bs-toggle="tab" data-bs-target="#rugpull" type="button" role="tab">Rugpull Analysis</button>
+                    </li>
+                    {% endif %}
+                    
+                    {% if report.results.mixer %}
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link {% if not report.results.ico and not report.results.money_laundering and not report.results.rugpull %}active{% endif %}" id="mixer-tab" data-bs-toggle="tab" data-bs-target="#mixer" type="button" role="tab">Mixer Detection</button>
+                    </li>
+                    {% endif %}
+                    
+                    {% if report.results.dusting %}
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link {% if not report.results.ico and not report.results.money_laundering and not report.results.rugpull and not report.results.mixer %}active{% endif %}" id="dusting-tab" data-bs-toggle="tab" data-bs-target="#dusting" type="button" role="tab">Address Poisoning</button>
+                    </li>
+                    {% endif %}
+                </ul>
+                
+                <div class="tab-content mt-3" id="analysisTabContent">
+                    {% if report.results.ico %}
+                    <div class="tab-pane fade show active" id="ico" role="tabpanel">
+                        <h4>ICO/Token Launch Analysis</h4>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="card mb-3">
+                                    <div class="card-header bg-light">Token Information</div>
+                                    <div class="card-body">
+                                        {{ report.results.ico.token_info|safe }}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card mb-3">
+                                    <div class="card-header bg-light">Launch Pattern</div>
+                                    <div class="card-body">
+                                        {{ report.results.ico.launch_pattern|safe }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="card mb-3">
+                            <div class="card-header bg-light">Insider Activities</div>
+                            <div class="card-body">
+                                {{ report.results.ico.insider_activities|safe }}
+                            </div>
+                        </div>
+                        
+                        {% if report.results.ico.visualizations %}
+                        <div class="card mb-3">
+                            <div class="card-header bg-light">Distribution Visualization</div>
+                            <div class="card-body text-center">
+                                <img src="data:image/png;base64,{{ report.results.ico.visualizations.distribution }}" class="img-fluid">
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                    
+                    {% if report.results.money_laundering %}
+                    <div class="tab-pane fade {% if not report.results.ico %}show active{% endif %}" id="ml" role="tabpanel">
+                        <h4>Money Laundering Analysis</h4>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="card mb-3">
+                                    <div class="card-header bg-light">Detected Patterns</div>
+                                    <div class="card-body">
+                                        <ul class="list-group">
+                                            {% for pattern in report.results.money_laundering.patterns %}
+                                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                                {{ pattern.name }}
+                                                <span class="badge bg-primary rounded-pill">{{ pattern.confidence }}%</span>
+                                            </li>
+                                            {% endfor %}
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card mb-3">
+                                    <div class="card-header bg-light">Suspected Routes</div>
+                                    <div class="card-body">
+                                        {{ report.results.money_laundering.routes|safe }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        {% if report.results.money_laundering.visualizations %}
+                        <div class="card mb-3">
+                            <div class="card-header bg-light">Transaction Flow</div>
+                            <div class="card-body text-center">
+                                <img src="data:image/png;base64,{{ report.results.money_laundering.visualizations.flow }}" class="img-fluid">
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                    
+                    {% if report.results.rugpull %}
+                    <div class="tab-pane fade {% if not report.results.ico and not report.results.money_laundering %}show active{% endif %}" id="rugpull" role="tabpanel">
+                        <h4>Rugpull Risk Analysis</h4>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="card mb-3">
+                                    <div class="card-header bg-light">Token Risk Factors</div>
+                                    <div class="card-body">
+                                        <ul class="list-group">
+                                            {% for factor in report.results.rugpull.risk_factors %}
+                                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                                {{ factor.name }}
+                                                <span class="badge 
+                                                    {% if factor.severity == 'high' %}bg-danger
+                                                    {% elif factor.severity == 'medium' %}bg-warning
+                                                    {% else %}bg-info{% endif %} rounded-pill">
+                                                    {{ factor.severity }}
+                                                </span>
+                                            </li>
+                                            {% endfor %}
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card mb-3">
+                                    <div class="card-header bg-light">Contract Analysis</div>
+                                    <div class="card-body">
+                                        {{ report.results.rugpull.contract_analysis|safe }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="card mb-3">
+                            <div class="card-header bg-light">Creator Activity</div>
+                            <div class="card-body">
+                                {{ report.results.rugpull.creator_activity|safe }}
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if report.results.mixer %}
+                    <div class="tab-pane fade {% if not report.results.ico and not report.results.money_laundering and not report.results.rugpull %}show active{% endif %}" id="mixer" role="tabpanel">
+                        <h4>Mixer Detection Analysis</h4>
+                        
+                        <div class="card mb-3">
+                            <div class="card-header bg-light">Detected Mixer Interactions</div>
+                            <div class="card-body">
+                                {{ report.results.mixer.interactions|safe }}
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="card mb-3">
+                                    <div class="card-header bg-light">Pattern Analysis</div>
+                                    <div class="card-body">
+                                        {{ report.results.mixer.pattern_analysis|safe }}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card mb-3">
+                                    <div class="card-header bg-light">Transaction Summary</div>
+                                    <div class="card-body">
+                                        <table class="table table-sm">
+                                            <tbody>
+                                                <tr>
+                                                    <th>Total Volume:</th>
+                                                    <td>{{ report.results.mixer.stats.total_volume_usd }} USD</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Transaction Count:</th>
+                                                    <td>{{ report.results.mixer.stats.transaction_count }}</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Mixer Services:</th>
+                                                    <td>{{ report.results.mixer.stats.mixer_services_count }}</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>First Interaction:</th>
+                                                    <td>{{ report.results.mixer.stats.first_interaction }}</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Last Interaction:</th>
+                                                    <td>{{ report.results.mixer.stats.last_interaction }}</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if report.results.dusting %}
+                    <div class="tab-pane fade {% if not report.results.ico and not report.results.money_laundering and not report.results.rugpull and not report.results.mixer %}show active{% endif %}" id="dusting" role="tabpanel">
+                        <h4>Address Poisoning Analysis</h4>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="card mb-3">
+                                    <div class="card-header bg-light">Poisoning Attempts</div>
+                                    <div class="card-body">
+                                        {{ report.results.dusting.poisoning_attempts|safe }}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card mb-3">
+                                    <div class="card-header bg-light">Dust Transactions</div>
+                                    <div class="card-body">
+                                        {{ report.results.dusting.dust_transactions|safe }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="card mb-3">
+                            <div class="card-header bg-light">Mitigation Recommendations</div>
+                            <div class="card-body">
+                                {{ report.results.dusting.recommendations|safe }}
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <!-- Transactions -->
+                <div class="row mt-4">
+                    <div class="col-md-12">
+                        <h3>Related Transactions</h3>
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Signature</th>
+                                        <th>Timestamp</th>
+                                        <th>Amount</th>
+                                        <th>Counterparty</th>
+                                        <th>Risk Score</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for tx in report.transactions %}
+                                    <tr>
+                                        <td><code class="small">{{ tx.signature[:12] }}...{{ tx.signature[-6:] }}</code></td>
+                                        <td>{{ tx.timestamp }}</td>
+                                        <td>{{ tx.amount_usd }} USD</td>
+                                        <td>{{ tx.counterparty }}</td>
+                                        <td>
+                                            <span class="badge 
+                                                {% if tx.risk_score > 70 %}bg-danger
+                                                {% elif tx.risk_score > 30 %}bg-warning
+                                                {% else %}bg-success{% endif %}">
+                                                {{ tx.risk_score }}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Conclusions & Recommendations -->
+                <div class="row mt-4">
+                    <div class="col-md-12">
+                        <h3>Conclusions & Recommendations</h3>
+                        <div class="card">
+                            <div class="card-body">
+                                {{ report.conclusions_recommendations|safe }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer">
+                <div class="d-flex justify-content-between">
+                    <span><strong>Generated by:</strong> Sentinel AI</span>
+                    <span><strong>Report ID:</strong> {{ report.id }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="bg-light py-3">
+        <div class="container text-center">
+            <p>Sentinel AI - Solana Blockchain Security Analysis Platform</p>
+        </div>
+    </footer>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='js/report.js') }}"></script>
+</body>
+</html>

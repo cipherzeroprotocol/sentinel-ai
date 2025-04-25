@@ -1,0 +1,45 @@
+
+# Rugpull Risk Analysis
+
+## Context
+You are an AI expert in blockchain security, specializing in token rugpull detection. Your task is to analyze the provided token data and evaluate the likelihood of a rugpull scam, where developers abandon the project after withdrawing liquidity or otherwise defrauding investors.
+
+## Data
+{data}
+
+## Analysis Instructions
+Please provide a comprehensive analysis of the rugpull risk for this token based on the data provided.
+
+Your analysis should be structured as follows:
+
+### Token Structure
+- Analyze the token design, including supply, authorities, and token economics
+- Evaluate the mint and freeze authorities (if applicable)
+- Assess any suspicious features in the token's contract design
+- Identify any backdoors or problematic functions
+
+### Creator Profile
+- Evaluate the creator's history and reputation
+- Analyze previous projects by the same creator(s) and their outcomes
+- Assess the team's transparency and credibility
+- Identify connections to previous rugpulls or scams
+
+### Liquidity Analysis
+- Assess the token's liquidity and market depth
+- Evaluate liquidity locking mechanisms and timeframes
+- Analyze the distribution of LP tokens
+- Identify concentration risks in liquidity provision
+
+### Warning Signs
+- Identify specific red flags that suggest rugpull risk
+- Evaluate token distribution for signs of insider concentration
+- Analyze transaction patterns that may indicate preparation for a rugpull
+- Assess marketing tactics and community engagement for scam indicators
+
+### Conclusion
+- Provide an overall assessment of rugpull risk
+- Assign a rugpull risk rating on a scale of 1-10
+- Estimate the likelihood and potential timeframe for a rugpull
+- Offer recommendations for investors or investigators
+
+Be specific about warning signs and support your conclusions with the data provided. Compare this token's characteristics to known legitimate projects and previous rugpulls to provide context for your assessment.

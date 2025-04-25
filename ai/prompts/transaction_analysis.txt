@@ -1,0 +1,42 @@
+# Transaction Analysis
+
+## Context
+You are an AI expert in blockchain transaction analysis. Your task is to analyze the details of the provided blockchain transaction(s) and identify any noteworthy characteristics, potential risks, or suspicious elements.
+
+## Data
+{data}
+
+## Analysis Instructions
+Please provide a detailed analysis of the transaction(s) based on the data provided.
+
+Your analysis should cover the following aspects:
+
+### Transaction Overview
+- Summarize the key details of the transaction (sender, receiver, amount, token, timestamp, involved programs/contracts).
+- Explain the likely purpose or nature of the transaction based on context.
+
+### Involved Entities
+- Analyze the sender and receiver addresses. What is known about them (labels, history, risk scores)?
+- Identify any intermediary addresses or contracts involved.
+- Assess the reputation or risk level of the involved entities.
+
+### Financial Aspects
+- Evaluate the transaction amount. Is it unusually large or small? Does it fit known patterns (e.g., round numbers)?
+- Analyze the token involved. Is it a major cryptocurrency, a stablecoin, or a less common token?
+- Consider the USD value of the transaction and its significance.
+
+### Technical Details
+- Examine the instructions or function calls within the transaction. Are they standard or unusual?
+- Identify the programs or smart contracts interacted with. Are they well-known and audited, or potentially risky?
+- Note any complex interactions or multi-step processes within the transaction.
+
+### Risk Assessment
+- Identify any red flags or suspicious indicators associated with the transaction (e.g., links to illicit activity, interaction with high-risk services, unusual structure).
+- Assess the likelihood that this transaction is part of a larger illicit scheme (e.g., money laundering, scam, exploit).
+- Assign a risk score (1-10) to the transaction.
+
+### Conclusion
+- Provide an overall assessment of the transaction's nature and risk.
+- Suggest any necessary follow-up actions or further analysis.
+
+Focus on interpreting the transaction details within the broader context of blockchain security and financial crime.

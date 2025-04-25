@@ -1,0 +1,473 @@
+/* Base styles */
+body {
+    font-family: Arial, sans-serif;
+    line-height: 1.6;
+    color: #333;
+    margin: 0;
+    padding: 0;
+    background-color: #f5f7fa;
+    padding-top: 56px; /* Adjust for fixed navbar if needed */
+}
+
+header { /* Keep for potential non-navbar headers */
+    background-color: #4a148c;
+    color: #fff;
+    padding: 1rem;
+    text-align: center;
+}
+
+header h1 {
+    margin: 0;
+    font-size: 2.5rem;
+}
+
+header h2 {
+    margin: 0;
+    font-size: 1.2rem;
+    font-weight: normal;
+    margin-top: 0.5rem;
+}
+
+/* Navbar adjustments (if needed beyond Bootstrap) */
+.navbar {
+    /* background-color: #4a148c !important; /* Override Bootstrap if needed */
+}
+
+.navbar-brand {
+    font-weight: bold;
+}
+
+/* Footer */
+footer {
+    background-color: #f8f9fa; /* Bootstrap light background */
+    color: #6c757d; /* Bootstrap muted text color */
+    text-align: center;
+    padding: 1rem 0;
+    margin-top: 2rem;
+    border-top: 1px solid #dee2e6; /* Bootstrap border color */
+}
+
+/* Home page / Dashboard specific */
+.hero { /* Keep if using this style */
+    background-color: #7b1fa2;
+    color: #fff;
+    padding: 3rem 1rem;
+    text-align: center;
+}
+
+.hero h2 {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+}
+
+.hero p {
+    font-size: 1.2rem;
+    max-width: 800px;
+    margin: 0 auto 2rem;
+}
+
+.button, .btn { /* Style both custom button and Bootstrap buttons */
+    display: inline-block;
+    background-color: #e91e63;
+    color: #fff !important; /* Ensure text is white */
+    padding: 0.75rem 1.5rem;
+    text-decoration: none;
+    border-radius: 4px;
+    font-weight: bold;
+    transition: background-color 0.3s ease;
+    cursor: pointer;
+    border: none;
+}
+
+.button:hover, .btn:hover {
+    background-color: #c2185b;
+    color: #fff !important;
+}
+
+.btn-primary { /* Align Bootstrap primary with custom theme */
+     background-color: #4a148c !important;
+     border-color: #4a148c !important;
+}
+.btn-primary:hover {
+     background-color: #380f6b !important;
+     border-color: #380f6b !important;
+}
+
+
+.features { /* Keep if using this style */
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    padding: 2rem 1rem;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.feature { /* Keep if using this style */
+    flex: 1 1 300px;
+    margin: 1rem;
+    padding: 1.5rem;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.feature h3 {
+    color: #4a148c;
+    margin-top: 0;
+}
+
+/* Card adjustments */
+.card {
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05); /* Softer shadow */
+}
+
+.card-header {
+    background-color: #f8f9fa; /* Bootstrap light background */
+    font-weight: bold;
+    color: #4a148c;
+}
+
+/* Analysis form / Input group */
+.analysis-form { /* Keep if using this style */
+    max-width: 800px;
+    margin: 2rem auto;
+    padding: 2rem;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.form-group { /* Keep if using this style */
+    margin-bottom: 1.5rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: bold;
+}
+
+.form-group input, .form-group select {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 1rem;
+    box-sizing: border-box;
+}
+
+.input-group .form-control {
+    border-right: 0; /* Avoid double border */
+}
+.input-group .btn {
+    border-radius: 0 0.25rem 0.25rem 0; /* Match input radius */
+}
+
+.form-check-label {
+    font-size: 0.9rem;
+}
+
+.hint { /* Keep if using this style */
+    display: block;
+    font-size: 0.8rem;
+    color: #777;
+    margin-top: 0.25rem;
+}
+
+.error, .alert-danger { /* Style both custom error and Bootstrap alert */
+    color: #842029; /* Bootstrap danger text */
+    background-color: #f8d7da; /* Bootstrap danger background */
+    border-color: #f5c2c7; /* Bootstrap danger border */
+    padding: 1rem;
+    border-radius: 4px;
+    margin-bottom: 1.5rem;
+    border: 1px solid transparent;
+}
+
+/* Analysis result sections */
+.analysis-result { /* Keep if using this style */
+    max-width: 1000px;
+    margin: 2rem auto;
+    padding: 2rem;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.timestamp {
+    text-align: center;
+    color: #777;
+    margin-bottom: 2rem;
+}
+
+.summary-cards { /* Keep if using this style */
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-bottom: 2rem;
+    gap: 1rem;
+}
+
+.summary-card { /* Keep if using this style */
+    flex: 1 1 200px;
+    padding: 1rem;
+    background-color: #f5f7fa;
+    border-radius: 8px;
+    text-align: center;
+    border: 1px solid #eee;
+}
+
+.card-title {
+    font-weight: bold;
+    color: #4a148c;
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.card-value {
+    font-size: 1.2rem;
+    word-wrap: break-word;
+}
+
+.result-details { /* Keep if using this style */
+    margin-top: 2rem;
+}
+
+.result-details h3 {
+    color: #4a148c;
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 0.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.detail-section { /* Keep if using this style */
+    margin-bottom: 2rem;
+    padding: 1.5rem;
+    background-color: #fafafa;
+    border-radius: 8px;
+    border: 1px solid #eee;
+}
+
+.detail-section h4 {
+    color: #7b1fa2;
+    margin-top: 0;
+    margin-bottom: 1rem;
+}
+
+.detail-section h5 {
+    color: #9c27b0;
+    margin: 1rem 0 0.5rem;
+}
+
+/* Lists within results */
+.list-group-item {
+    word-break: break-word; /* Prevent long items overflowing */
+}
+
+/* Badges */
+.badge {
+    font-size: 0.8em; /* Slightly smaller badges */
+}
+.bg-danger {
+    background-color: #dc3545 !important;
+}
+.bg-warning {
+    background-color: #ffc107 !important;
+    color: #000 !important; /* Ensure text visibility */
+}
+.bg-success {
+    background-color: #198754 !important;
+}
+.bg-info {
+     background-color: #0dcaf0 !important;
+     color: #000 !important; /* Ensure text visibility */
+}
+.bg-primary {
+     background-color: #4a148c !important; /* Match theme */
+}
+.bg-secondary {
+     background-color: #6c757d !important;
+}
+
+/* Progress Bar */
+.progress {
+    height: 25px; /* Custom height */
+    font-size: 0.9rem;
+}
+.progress-bar {
+    font-weight: bold;
+}
+
+/* Tables */
+.table code {
+    font-size: 0.8em;
+    color: #d63384; /* Bootstrap pink for code */
+    word-break: break-all;
+}
+
+/* Tabs */
+.nav-tabs .nav-link {
+    color: #4a148c;
+}
+.nav-tabs .nav-link.active {
+    color: #495057; /* Bootstrap default active tab text */
+    background-color: #fff;
+    border-color: #dee2e6 #dee2e6 #fff;
+}
+
+/* Search page specific */
+.search-form { /* Keep if using this style */
+    max-width: 800px;
+    margin: 2rem auto;
+    padding: 2rem;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    text-align: center;
+}
+
+.search-box { /* Keep if using this style */
+    display: flex;
+    max-width: 600px;
+    margin: 1rem auto;
+}
+
+.search-results { /* Keep if using this style */
+    max-width: 800px;
+    margin: 2rem auto;
+}
+
+.result-item { /* Keep if using this style */
+    background-color: #fff;
+    padding: 1.5rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin-bottom: 1rem;
+}
+
+.result-item h3 {
+    color: #4a148c;
+    margin-top: 0;
+    margin-bottom: 0.5rem;
+}
+.result-address, .result-risk, .result-last-seen {
+    margin-bottom: 0.5rem;
+    color: #555;
+}
+.result-actions {
+    margin-top: 1rem;
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+.result-actions .button, .result-actions .btn {
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+}
+
+.no-results { /* Keep if using this style */
+    text-align: center;
+    padding: 2rem;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Report Page Specific */
+.report-detail h2 {
+    color: #4a148c;
+    margin-top: 0;
+    text-align: center;
+    margin-bottom: 1.5rem;
+}
+.report-meta {
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #eee;
+}
+.report-meta p {
+    margin: 0.5rem 0;
+    color: #555;
+}
+.report-meta strong {
+    color: #333;
+}
+.report-results pre { /* Style for JSON display */
+    background-color: #f5f7fa;
+    padding: 1rem;
+    border-radius: 4px;
+    border: 1px solid #eee;
+    overflow-x: auto;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    max-height: 400px; /* Limit height */
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    body {
+        padding-top: 0; /* Remove padding if navbar isn't fixed */
+    }
+    header h1 {
+        font-size: 2rem;
+    }
+    header h2 {
+        font-size: 1rem;
+    }
+
+    .hero h2 {
+        font-size: 1.5rem;
+    }
+
+    .hero p {
+        font-size: 1rem;
+    }
+
+    .feature, .analysis-list li, .entity-list li {
+        flex: 1 1 100%;
+        margin: 0.5rem 0;
+    }
+
+    .summary-card {
+        flex: 1 1 calc(50% - 1rem); /* Adjust for gap */
+    }
+
+    .search-box {
+        flex-direction: column;
+    }
+    .search-box input {
+        border-radius: 4px 4px 0 0;
+        border-right: 1px solid #ddd; /* Add back border */
+    }
+    .search-box button {
+        border-radius: 0 0 4px 4px;
+        width: 100%;
+    }
+
+    .table code {
+        font-size: 0.75em;
+    }
+}
+
+@media (max-width: 576px) { /* Smaller screens */
+    .summary-card {
+        flex: 1 1 100%;
+    }
+    .result-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .result-actions .button, .result-actions .btn {
+        width: 100%;
+        margin-bottom: 0.5rem;
+    }
+    .form-check-inline { /* Stack radio buttons */
+        display: block;
+        margin-bottom: 0.5rem;
+    }
+    .table-responsive { /* Ensure table scrolls */
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+}

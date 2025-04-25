@@ -1,0 +1,38 @@
+# Security Analysis
+
+## Context
+You are an AI expert in blockchain security. Your task is to analyze the provided blockchain data and identify any security concerns, suspicious activity, or noteworthy patterns.
+
+## Data
+{data}
+
+## Analysis Instructions
+Please provide a comprehensive security analysis based on the data provided.
+
+Your analysis should be structured as follows:
+
+### Entity Identification (If Applicable)
+- What kind of entity is this (exchange, mixer, individual, contract, etc.)?
+- What are the key characteristics based on the data?
+- How confident are you in this classification?
+
+### Behavior Patterns
+- What patterns of activity are evident (e.g., transaction frequency, volume, counterparties, token usage)?
+- Are there any unusual or suspicious transaction patterns?
+- How does this behavior compare to typical activity for this entity type or context?
+
+### Risk Assessment
+- What security risks, vulnerabilities, or red flags are present in the data?
+- Are there signs of malicious activity, scams, or exploits?
+- What is the overall risk level associated with the provided data (Low, Medium, High)? Assign a risk score (1-10).
+
+### Recommendations
+- What further analysis or data points would be valuable?
+- What security measures or precautions would be appropriate based on the findings?
+- What monitoring should be implemented, if any?
+
+### Conclusion
+- Summarize your key findings.
+- Provide an overall security assessment.
+
+Be specific about patterns you observe and support your conclusions with the data provided. Clearly state any assumptions made due to limited data.

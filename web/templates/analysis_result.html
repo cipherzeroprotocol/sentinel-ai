@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ analysis.title }} - Sentinel AI</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <header>
+        <h1>Sentinel AI</h1>
+        <h2>Analysis Results</h2>
+        <nav>
+            <ul>
+                <li><a href="{{ url_for('index') }}">Home</a></li>
+                <li><a href="{{ url_for('analyze') }}">Analyze</a></li>
+                <li><a href="{{ url_for('search') }}">Search</a></li>
+                <li><a href="{{ url_for('reports_list') }}">Reports</a></li> {# Added Reports Link #}
+            </ul>
+        </nav>
+    </header>
+
+    <section class="analysis-result">
+        <h2>{{ analysis.title }}</h2>
+        <div class="timestamp">Analysis completed: {{ analysis.timestamp }}</div>
+
+        <div class="summary-cards">
+            {% for key, value in analysis.summary.items() %}
+                <div class="summary-card">
+                    <div class="card-title">{{ key|replace('_', ' ')|title }}</div>
+                    <div class="card-value">{{ value }}</div>
+                </div>
+            {% endfor %}
+        </div>
+
+        {% if analysis.report_path %}
+            <div class="report-link">
+                {# Use the new report route to serve the file - Use forward slash for splitting #}
+                <a href="{{ url_for('view_report', filename=analysis.report_path.split('/')[-1]) }}" class="button" target="_blank">View Full Report</a>
+            </div>
+        {% endif %}
+
+        <div class="result-details">
+            <h3>Detailed Results</h3>
+
+            {% if analysis.result %} {# Check if result exists #}
+                {% if analysis.type == 'ico' %}
+                    {# ... existing ICO details ... #}
+                <div class="detail-section">
+                    <h4>Suspicious Patterns</h4>
+                    {% if analysis.result.suspicious_patterns and analysis.result.suspicious_patterns.detected_patterns %}
+                        <ul class="pattern-list">
+                            {% for pattern in analysis.result.suspicious_patterns.detected_patterns %}
+                                <li>
+                                    <div class="pattern-name">{{ pattern.pattern }}</div>
+                                    <div class="pattern-description">{{ pattern.description }}</div>
+                                    <div class="pattern-confidence">Confidence: {{ pattern.confidence|round(2) }}</div>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p>No suspicious patterns detected or data unavailable.</p>
+                    {% endif %}
+                </div>
+
+                <div class="detail-section">
+                    <h4>Team Analysis</h4>
+                    {% if analysis.result.team_analysis %}
+                    <div class="team-holdings">Team holdings: {{ analysis.result.team_analysis.total_team_holdings_pct|round(2) }}%</div>
+                    <div class="team-wallets">Team wallets: {{ analysis.result.team_analysis.team_wallets|length }}</div>
+                    {% else %}
+                    <p>Team analysis data unavailable.</p>
+                    {% endif %}
+                </div>
+
+                <div class="detail-section">
+                    <h4>Fund Flows</h4>
+                     {% if analysis.result.fund_flows %}
+                    <div class="total-outflows">Total outflows: ${{ analysis.result.fund_flows.total_outflows_usd|round(2) }}</div>
+
+                    {% if analysis.result.fund_flows.outflow_destinations and analysis.result.fund_flows.outflow_destinations.exchanges %}
+                        <h5>Exchange Outflows</h5>
+                        <ul class="outflow-list">
+                            {% for flow in analysis.result.fund_flows.outflow_destinations.exchanges %}
+                                <li>${{ flow.amount_usd|round(2) }} to {{ flow.to_address }}</li>
+                            {% endfor %}
+                        </ul>
+                    {% endif %}
+
+                    {% if analysis.result.fund_flows.outflow_destinations and analysis.result.fund_flows.outflow_destinations.bridges %}
+                        <h5>Bridge Outflows</h5>
+                        <ul class="outflow-list">
+                            {% for flow in analysis.result.fund_flows.outflow_destinations.bridges %}
+                                <li>${{ flow.amount_usd|round(2) }} to {{ flow.to_address }}</li>
+                            {% endfor %}
+                        </ul>
+                    {% endif %}
+                     {% else %}
+                     <p>Fund flow data unavailable.</p>
+                     {% endif %}
+                </div>
+
+                {% elif analysis.type == 'rugpull' %}
+                    {# ... existing rugpull details ... #}
+                <div class="detail-section">
+                    <h4>Detected Methods</h4>
+                    {% if analysis.result.detected_methods %}
+                        <ul class="method-list">
+                            {% for method in analysis.result.detected_methods %}
+                                <li>
+                                    <div class="method-name">{{ method.method }}</div>
+                                    <div class="method-description">{{ method.description }}</div>
+                                    <div class="method-confidence">Confidence: {{ method.confidence|round(2) }}</div>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p>No rugpull methods detected</p>
+                    {% endif %}
+                </div>
+
+                <div class="detail-section">
+                    <h4>Warning Signs</h4>
+                    {% if analysis.result.warning_signs %}
+                        <ul class="warning-list">
+                            {% for warning in analysis.result.warning_signs %}
+                                <li>
+                                    <div class="warning-name">{{ warning.sign }}</div>
+                                    <div class="warning-description">{{ warning.description }}</div>
+                                    <div class="warning-severity">Severity: {{ warning.severity }}</div>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p>No warning signs detected</p>
+                    {% endif %}
+                </div>
+
+                <div class="detail-section">
+                    <h4>Creator Behavior</h4>
+                     {% if analysis.result.creator_behavior %}
+                    <div class="creator-address">Creator: {{ analysis.result.creator_behavior.creator_address }}</div>
+                    <div class="creator-reputation">Reputation score: {{ analysis.result.creator_behavior.reputation_score|round(2) }}/100</div>
+                    <div class="creator-history">History: {{ analysis.result.creator_behavior.creator_history.tokens_created }} tokens created</div>
+                     {% else %}
+                     <p>Creator behavior data unavailable.</p>
+                     {% endif %}
+                </div>
+
+                {% elif analysis.type == 'money_laundering' %}
+                   {# ... existing money_laundering details ... #}
+                <div class="detail-section">
+                    <h4>Detected Techniques</h4>
+                    {% if analysis.result.detected_techniques %}
+                        <ul class="technique-list">
+                            {% for technique in analysis.result.detected_techniques %}
+                                <li>
+                                    <div class="technique-name">{{ technique.technique }}</div>
+                                    <div class="technique-description">{{ technique.description }}</div>
+                                    <div class="technique-confidence">Confidence: {{ technique.confidence|round(2) }}</div>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p>No money laundering techniques detected</p>
+                    {% endif %}
+                </div>
+
+                <div class="detail-section">
+                    <h4>Money Laundering Routes</h4>
+                    {% if analysis.result.money_laundering_routes %}
+                        <ul class="route-list">
+                            {% for route in analysis.result.money_laundering_routes %}
+                                <li>
+                                    <div class="route-destination">Destination: {{ route.destination_type }}</div>
+                                    <div class="route-value">Value: ${{ route.total_value_usd|round(2) }}</div>
+                                    <div class="route-length">Path length: {{ route.path_length }}</div>
+                                    <div class="route-techniques">Techniques: {{ route.techniques_used|join(', ') }}</div>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p>No money laundering routes detected</p>
+                    {% endif %}
+                </div>
+
+                {% elif analysis.type == 'mixer' %}
+                    {# ... existing mixer details ... #}
+                <div class="detail-section">
+                    <h4>Detected Patterns</h4>
+                    {% if analysis.result.detected_patterns %}
+                        <ul class="pattern-list">
+                            {% for pattern in analysis.result.detected_patterns %}
+                                <li>
+                                    <div class="pattern-name">{{ pattern.pattern }}</div>
+                                    <div class="pattern-description">{{ pattern.description }}</div>
+                                    <div class="pattern-confidence">Confidence: {{ pattern.confidence|round(2) }}</div>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p>No mixer patterns detected</p>
+                    {% endif %}
+                </div>
+
+                <div class="detail-section">
+                    <h4>Related Mixers</h4>
+                    {% if analysis.result.related_mixers %}
+                        <ul class="mixer-list">
+                            {% for mixer in analysis.result.related_mixers %}
+                                <li>
+                                    <div class="mixer-name">{{ mixer.mixer_name }}</div>
+                                    <div class="mixer-address">Address: {{ mixer.address }}</div>
+                                    <div class="mixer-relationship">Relationship: {{ mixer.relationship }}</div>
+                                    <div class="mixer-transactions">Transactions: {{ mixer.transactions }}</div>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p>No related mixers detected</p>
+                    {% endif %}
+                </div>
+
+                {% elif analysis.type == 'dusting' %}
+                    {# ... existing dusting details ... #}
+                <div class="detail-section">
+                    <h4>Poisoning Attempts</h4>
+                    {% if analysis.result.poisoning_attempts %}
+                        <ul class="poisoning-list">
+                            {% for attempt in analysis.result.poisoning_attempts %}
+                                <li>
+                                    <div class="legitimate-address">Legitimate address: {{ attempt.legitimate_counterparty }}</div> {# Corrected key #}
+                                    <div class="poisoning-address">Poisoning address: {{ attempt.poisoning_address }}</div>
+                                    <div class="similarity">Similarity: {{ attempt.similarity.visual_similarity|round(2) }}</div>
+                                    <div class="transaction-count">Transactions: {{ attempt.transaction_count }}</div>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p>No poisoning attempts detected</p>
+                    {% endif %}
+                </div>
+
+                <div class="detail-section">
+                    <h4>Dusting Campaigns Targeting Address</h4> {# Clarified title #}
+                    {% if analysis.result.dusting_campaigns %}
+                        <ul class="campaign-list">
+                            {% for campaign in analysis.result.dusting_campaigns %}
+                                <li>
+                                    <div class="sender-address">Sender: {{ campaign.sender_address }}</div>
+                                    <div class="recipient-count">Dust Txs to this Address: {{ campaign.dust_transaction_count }}</div> {# Corrected key #}
+                                    {# <div class="dust-amount">Common amount: {{ campaign.common_amount }}</div> #} {# Common amount might not be relevant here #}
+                                    <div class="first-seen">First seen: {{ campaign.first_seen }}</div>
+                                    <div class="last-seen">Last seen: {{ campaign.last_seen }}</div> {# Added last seen #}
+                                    {% if campaign.part_of_larger_campaign %}
+                                        <div class="campaign-size">Part of larger campaign ({{ campaign.campaign_size }} recipients)</div>
+                                    {% endif %}
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p>No specific dusting campaigns targeting this address detected</p>
+                    {% endif %}
+                </div>
+
+                {% elif analysis.type == 'wallet' %}
+                    {# ... existing wallet details ... #}
+                <div class="detail-section">
+                    <h4>Classification</h4>
+                     {% if analysis.result.classification %}
+                    <div class="wallet-type">Type: {{ analysis.result.classification.primary_type }}</div>
+                    <div class="wallet-confidence">Confidence: {{ analysis.result.classification.primary_confidence|round(2) }}</div>
+
+                    {% if analysis.result.classification.classifications %}
+                        <h5>All Classifications</h5>
+                        <ul class="classification-list">
+                            {% for classification in analysis.result.classification.classifications %}
+                                <li>
+                                    <div class="classification-type">{{ classification.type }}</div>
+                                    <div class="classification-confidence">Confidence: {{ classification.confidence|round(2) }}</div>
+                                    <div class="classification-description">{{ classification.description }}</div>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% endif %}
+                     {% else %}
+                     <p>Classification data unavailable.</p>
+                     {% endif %}
+                </div>
+
+                <div class="detail-section">
+                    <h4>Risk Assessment</h4>
+                     {% if analysis.result.risk_assessment %}
+                    <div class="risk-score">Risk score: {{ analysis.result.risk_assessment.risk_score|round(2) }}/100</div>
+                    <div class="risk-level">Risk level: {{ analysis.result.risk_assessment.risk_level }}</div>
+
+                    {% if analysis.result.risk_assessment.risk_factors %}
+                        <h5>Risk Factors</h5>
+                        <ul class="risk-factor-list">
+                            {% for factor in analysis.result.risk_assessment.risk_factors %}
+                                <li>
+                                    <div class="factor-name">{{ factor.factor }}</div>
+                                    <div class="factor-description">{{ factor.description }}</div>
+                                    <div class="factor-score">Score: {{ factor.score|round(2) }}</div>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% endif %}
+                     {% else %}
+                     <p>Risk assessment data unavailable.</p>
+                     {% endif %}
+                </div>
+
+                <div class="detail-section">
+                    <h4>Activity Statistics</h4>
+                     {% if analysis.result.features %}
+                    <div class="transactions">Transactions: {{ analysis.result.features.sent_tx_count + analysis.result.features.received_tx_count }}</div>
+                    <div class="volume">Volume: ${{ analysis.result.features.total_volume_usd|round(2) }}</div>
+                    <div class="counterparties">Unique counterparties: {{ analysis.result.features.unique_counterparties }}</div>
+                    <div class="tokens">Token diversity: {{ analysis.result.features.token_diversity }}</div>
+                    <div class="programs">Program diversity: {{ analysis.result.features.program_diversity }}</div>
+                     {% else %}
+                     <p>Activity statistics unavailable.</p>
+                     {% endif %}
+                </div>
+
+                {% elif analysis.type == 'transaction' %}
+                    {# ... existing transaction details ... #}
+                <div class="detail-section">
+                    <h4>Transaction Patterns</h4>
+                    {% if analysis.result.patterns %}
+                        <ul class="pattern-list">
+                            {% for pattern_type, pattern_data in analysis.result.patterns.items() %}
+                                <li>
+                                    <div class="pattern-type">{{ pattern_type }}</div>
+                                    <div class="pattern-count">Count: {{ pattern_data.count }}</div>
+                                    <div class="pattern-percentage">Percentage: {{ pattern_data.percentage|round(2) }}%</</div>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p>No transaction patterns detected</p>
+                    {% endif %}
+                </div>
+
+                <div class="detail-section">
+                    <h4>Cross-Chain Transfers</h4>
+                    {% if analysis.result.cross_chain_transfers %}
+                        <ul class="transfer-list">
+                            {% for transfer in analysis.result.cross_chain_transfers %}
+                                <li>
+                                    <div class="bridge-name">Bridge: {{ transfer.bridge_name }}</div>
+                                    <div class="destination-chain">Destination: {{ transfer.destination_chain }}</div>
+                                    <div class="amount">Amount: {{ transfer.amount }}</div>
+                                    <div class="amount-usd">USD Value: ${{ transfer.amount_usd|round(2) }}</div>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p>No cross-chain transfers detected</p>
+                    {% endif %}
+                </div>
+
+                <div class="detail-section">
+                    <h4>Risk Assessment</h4>
+                     {% if analysis.result.risk_assessment %}
+                    <div class="risk-score">Risk score: {{ analysis.result.risk_assessment.overall_risk_score|round(2) }}/100</div>
+
+                    {% if analysis.result.risk_assessment.high_risk_transactions %}
+                        <h5>High Risk Transactions</h5>
+                        <ul class="high-risk-list">
+                            {% for tx in analysis.result.risk_assessment.high_risk_transactions %}
+                                <li>
+                                    <div class="tx-hash">Transaction: {{ tx.signature }}</div>
+                                    <div class="tx-risk-score">Risk score: {{ tx.risk_score }}</div>
+                                    <div class="tx-amount-usd">Amount: ${{ tx.amount_usd|round(2) }}</div>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% endif %}
+                     {% else %}
+                     <p>Risk assessment data unavailable.</p>
+                     {% endif %}
+                </div>
+                {% endif %}
+            {% else %}
+                <p>No detailed results available for this analysis.</p>
+            {% endif %}
+        </div>
+    </section>
+
+    <footer>
+        <p>&copy; 2024 Sentinel AI Platform</p> {# Updated year #}
+    </footer>
+</body>
+</html>

@@ -1,0 +1,89 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Sentinel AI - Solana Security Analysis Platform</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <header>
+        <h1>Sentinel AI</h1>
+        <h2>Solana Security Analysis Platform</h2>
+        <nav>
+            <ul>
+                <li><a href="{{ url_for('index') }}">Home</a></li>
+                <li><a href="{{ url_for('analyze') }}">Analyze</a></li>
+                <li><a href="{{ url_for('search') }}">Search</a></li>
+                <li><a href="{{ url_for('reports_list') }}">Reports</a></li> {# Added Reports Link #}
+            </ul>
+        </nav>
+    </header>
+
+    <section class="hero">
+        <h2>AI-Powered Solana Security Analytics</h2>
+        <p>Detect mixing services, money laundering, rugpulls, and more using advanced AI analysis</p>
+        <a href="{{ url_for('analyze') }}" class="button">Start Analysis</a>
+    </section>
+
+    <section class="features">
+        <div class="feature">
+            <h3>Mixer Detection</h3>
+            <p>Identify cryptocurrency mixing services and their users</p>
+        </div>
+        <div class="feature">
+            <h3>Money Laundering</h3>
+            <p>Detect sophisticated money laundering techniques</p>
+        </div>
+        <div class="feature">
+            <h3>Rugpull Detection</h3>
+            <p>Identify potential rugpulls before they happen</p>
+        </div>
+        <div class="feature">
+            <h3>Address Poisoning</h3>
+            <p>Detect address poisoning and dusting attacks</p>
+        </div>
+    </section>
+
+    <section class="recent">
+        <h2>Recent Analyses</h2>
+        {% if recent_analyses %}
+            <ul class="analysis-list">
+                {% for analysis in recent_analyses %}
+                    <li>
+                        <h3>{{ analysis.title }}</h3>
+                        <p>{{ analysis.summary }}</p>
+                        {# Link might need adjustment based on how results are accessed now #}
+                        <a href="{{ url_for('analysis_results', analysis_id=analysis.id) }}">View Details</a>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>No recent analyses</p>
+        {% endif %}
+    </section>
+
+    <section class="high-risk">
+        <h2>High Risk Entities</h2>
+        {% if high_risk_entities %}
+            <ul class="entity-list">
+                {% for entity in high_risk_entities %}
+                    <li>
+                        <h3>{{ entity.type }}: {{ entity.address[:8] }}...</h3>
+                        <p>Risk Score: {{ entity.risk_score }}/100</p>
+                        <a href="{{ url_for('search') }}?query={{ entity.address }}">View Details</a>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>No high risk entities found</p>
+        {% endif %}
+    </section>
+
+    <footer>
+        <p>&copy; 2024 Sentinel AI Platform</p> {# Updated year #}
+    </footer>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>
+            

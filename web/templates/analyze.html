@@ -1,0 +1,137 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Analyze - Sentinel AI</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <header>
+        <h1>Sentinel AI</h1>
+        <h2>Analysis Dashboard</h2>
+        <nav>
+            <ul>
+                <li><a href="{{ url_for('index') }}">Home</a></li>
+                <li><a href="{{ url_for('analyze') }}">Analyze</a></li>
+                <li><a href="{{ url_for('search') }}">Search</a></li>
+                <li><a href="{{ url_for('reports_list') }}">Reports</a></li> {# Added Reports Link #}
+            </ul>
+        </nav>
+    </header>
+
+    <section class="analysis-form">
+        <h2>Submit Analysis</h2>
+
+        {% if error %}
+            <div class="error">{{ error }}</div>
+        {% endif %}
+
+        <form method="post">
+            <div class="form-group">
+                <label for="analysis_type">Analysis Type</label>
+                <select id="analysis_type" name="analysis_type" required>
+                    <option value="ico">ICO Analysis</option>
+                    <option value="rugpull">Rugpull Detection</option>
+                    <option value="money_laundering">Money Laundering Detection</option>
+                    <option value="mixer">Mixer Detection</option>
+                    <option value="dusting">Address Poisoning Analysis</option>
+                    <option value="wallet">Wallet Profiling</option>
+                    <option value="transaction">Transaction Analysis</option>
+                    <option value="all">All Analyses</option> {# Added All option #}
+                </select>
+            </div>
+
+            <div class="form-group token-input">
+                <label for="token">Token Address</label>
+                <input type="text" id="token" name="token" placeholder="Solana token mint address">
+                <span class="hint">Required for ICO and Rugpull analysis</span>
+            </div>
+
+            <div class="form-group address-input">
+                <label for="address">Wallet Address</label>
+                <input type="text" id="address" name="address" placeholder="Solana wallet address">
+                <span class="hint">Required for most analysis types</span>
+            </div>
+
+            <div class="form-group">
+                <label for="days">Analysis Timeframe (days)</label>
+                <input type="number" id="days" name="days" value="30" min="1" max="365">
+            </div>
+
+            <div class="form-group">
+                <button type="submit" class="button">Start Analysis</button>
+            </div>
+        </form>
+    </section>
+
+    <section class="analysis-types">
+        <h2>Available Analysis Types</h2>
+
+        <div class="analysis-type">
+            <h3>ICO Analysis</h3>
+            <p>Analyze token launches for suspicious patterns and fund flows.</p>
+        </div>
+
+        <div class="analysis-type">
+            <h3>Rugpull Detection</h3>
+            <p>Identify potential rugpulls before they happen by analyzing token contracts and creator behavior.</p>
+        </div>
+
+        <div class="analysis-type">
+            <h3>Money Laundering Detection</h3>
+            <p>Detect sophisticated money laundering techniques including layering, bridge hopping, and token swapping.</p>
+        </div>
+
+        <div class="analysis-type">
+            <h3>Mixer Detection</h3>
+            <p>Identify cryptocurrency mixing services and analyze patterns of mixer usage.</p>
+        </div>
+
+        <div class="analysis-type">
+            <h3>Address Poisoning Analysis</h3>
+            <p>Detect address poisoning attacks and dusting campaigns targeting specific addresses.</p>
+        </div>
+
+        <div class="analysis-type">
+            <h3>Wallet Profiling</h3>
+            <p>Generate comprehensive profiles of wallet behavior and classify wallet types.</p>
+        </div>
+
+        <div class="analysis-type">
+            <h3>Transaction Analysis</h3>
+            <p>Analyze transaction patterns and detect suspicious activities.</p>
+        </div>
+    </section>
+
+    <footer>
+        <p>&copy; 2024 Sentinel AI Platform</p> {# Updated year #}
+    </footer>
+
+    <script>
+        // Toggle input visibility based on analysis type
+        document.getElementById('analysis_type').addEventListener('change', function() {
+            const analysisType = this.value;
+            const tokenInput = document.querySelector('.token-input');
+            const addressInput = document.querySelector('.address-input');
+
+            if (analysisType === 'ico' || analysisType === 'rugpull') {
+                tokenInput.style.display = 'block';
+                addressInput.style.display = 'none';
+                addressInput.querySelector('input').value = ''; // Clear address input
+            } else if (analysisType === 'all') {
+                 tokenInput.style.display = 'block'; // Show both for 'all'
+                 addressInput.style.display = 'block';
+            }
+            else {
+                tokenInput.style.display = 'none';
+                tokenInput.querySelector('input').value = ''; // Clear token input
+                addressInput.style.display = 'block';
+            }
+        });
+
+        // Trigger change on page load
+        document.getElementById('analysis_type').dispatchEvent(new Event('change'));
+    </script>
+</body>
+</html>
+            

@@ -1,0 +1,35 @@
+# Core dependencies
+numpy==1.24.3
+pandas==2.0.3
+matplotlib==3.7.1
+seaborn==0.12.2
+networkx==3.1
+scikit-learn==1.3.0
+python-Levenshtein==0.21.0
+
+# API and HTTP
+requests==2.31.0
+aiohttp==3.8.5
+
+# NLP and AI
+openai==0.28.1
+
+# Web framework
+flask==2.3.2
+flask-cors==4.0.0
+
+# Database
+sqlalchemy==2.0.19
+alembic==1.11.1
+
+# Utilities
+python-dotenv==1.0.0
+tqdm==4.65.0
+pydantic==2.0.3
+pytz==2023.3
+iso8601==2.0.0
+
+# Development tools
+pytest==7.4.0
+black==23.7.0
+pylint==2.17.5

@@ -1,0 +1,38 @@
+# Wallet Profiling Analysis
+
+## Context
+You are an AI expert in blockchain analysis, specializing in wallet profiling and classification. Your task is to analyze the provided wallet data (transactions, interactions, balances) and generate a profile.
+
+## Data
+{data}
+
+## Analysis Instructions
+Please provide a comprehensive profile of this wallet based on the data provided.
+
+Your analysis should be structured as follows:
+
+### Wallet Classification
+- What is the likely primary type of this wallet (e.g., Individual User, Exchange Deposit, Smart Contract, DeFi Protocol, NFT Collector, Bot)?
+- Provide a confidence score (1-10) for the primary classification.
+- List any secondary classifications and their confidence scores.
+- Explain the reasoning behind your classifications based on the data.
+
+### Activity Summary
+- Summarize the wallet's key activity metrics (transaction count, volume, active period, token diversity, program interactions).
+- Describe the typical transaction patterns (frequency, size, timing).
+- Identify the main counterparties (other wallets, contracts, exchanges).
+
+### Behavioral Insights
+- What are the dominant behaviors observed (e.g., trading, staking, NFT minting, bridging, receiving airdrops)?
+- Are there any unusual or noteworthy patterns in the wallet's behavior?
+- How does this wallet's activity compare to typical wallets of its classified type?
+
+### Risk Assessment
+- Identify any potential risks associated with this wallet's activity (e.g., interaction with high-risk entities, involvement in suspicious schemes).
+- Assign an overall risk score (1-10) based on observed behavior and interactions.
+
+### Conclusion
+- Provide a concise summary of the wallet's profile.
+- Suggest potential next steps for further investigation if warranted.
+
+Focus on extracting meaningful insights from the provided data to build a clear and accurate profile of the wallet.
