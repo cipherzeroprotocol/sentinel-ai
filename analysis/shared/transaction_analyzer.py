@@ -116,7 +116,7 @@ class TransactionAnalyzer:
         # Otherwise, try to fetch from Vybe API
         try:
             token_info = self.vybe_collector.get_token_info(mint_address)
-            if token_info:
+            if (token_info):
                 return {
                     "symbol": token_info.get("symbol"),
                     "name": token_info.get("name")
@@ -127,59 +127,84 @@ class TransactionAnalyzer:
         return {"symbol": "Unknown", "name": "Unknown Token"}
     
     def fetch_transactions(self, address=None, signatures=None, days=30):
-        """
-        Fetch transactions for analysis
-        
-        Args:
-            address (str, optional): Address to fetch transactions for. Defaults to None.
-            signatures (list, optional): List of transaction signatures. Defaults to None.
-            days (int, optional): Number of days to look back. Defaults to 30.
-            
-        Returns:
-            pd.DataFrame: DataFrame of transactions
-        """
+        """Fetches transactions by address or signatures."""
         transactions = []
-        
-        # Fetch by address
-        if address:
-            self.logger.info(f"Fetching transactions for address {address}")
-            address_txs = helius_collector.get_account_transactions(address, days=days)
-            transactions.extend(address_txs)
-        
-        # Fetch by signatures
         if signatures:
-            self.logger.info(f"Fetching transactions for {len(signatures)} signatures")
-            for signature in signatures:
-                tx = helius_collector.get_transaction(signature)
-                if tx:
-                    transactions.append(tx)
-        
-        # Remove duplicates
-        unique_txs = {}
+            # Fetch by signature
+            for sig in signatures:
+                try:
+                    tx_details = helius_collector.get_transaction_details(sig)
+                    if tx_details:
+                        transactions.append(tx_details)
+                except Exception as e:
+                    logger.error(f"Error fetching transaction details for {sig}: {e}")
+        elif address:
+            # Fetch by address
+            try:
+                # Corrected method call: Use get_transaction_history
+                address_txs = helius_collector.get_transaction_history(address) # Removed days=days if not supported
+
+                # Apply filtering if needed (similar to DustingAnalyzer._filter_transactions_by_days)
+                if days > 0:
+                     address_txs = self._filter_transactions_by_days(address_txs, days) # Add this helper method if needed
+
+                # Optionally fetch full details if history only returns signatures/basic info
+                # This depends on what get_transaction_history returns
+                # If it returns full details, the following loop might be redundant
+                detailed_txs = []
+                for tx_info in address_txs:
+                    sig = tx_info.get('signature')
+                    if sig:
+                         # Avoid re-fetching if details are already present
+                         if 'transaction' in tx_info and 'message' in tx_info['transaction']:
+                              detailed_txs.append(tx_info)
+                         else:
+                              try:
+                                   tx_details = helius_collector.get_transaction_details(sig)
+                                   if tx_details:
+                                        detailed_txs.append(tx_details)
+                              except Exception as e:
+                                   logger.error(f"Error fetching transaction details for {sig} in analyzer: {e}")
+                    else: # If no signature, maybe it's already detailed?
+                         detailed_txs.append(tx_info)
+                transactions = detailed_txs
+
+            except Exception as e:
+                logger.error(f"Error fetching transactions for {address} in TransactionAnalyzer: {e}")
+
+        # Convert to DataFrame for easier analysis
+        if transactions:
+            return pd.DataFrame(transactions)
+        else:
+            return pd.DataFrame()
+
+    # Add this helper method if needed for filtering by days
+    def _filter_transactions_by_days(self, transactions, days):
+        """Filters transactions to include only those within the specified number of days."""
+        if not transactions or days <= 0:
+            return transactions
+
+        cutoff_timestamp = (datetime.now() - timedelta(days=days)).timestamp()
+        filtered_txs = []
+
         for tx in transactions:
-            if 'signature' in tx:
-                unique_txs[tx['signature']] = tx
-        
-        # Convert to DataFrame
-        transactions_df = pd.DataFrame(list(unique_txs.values()))
-        
-        # Add risk scores
-        if not transactions_df.empty and 'signature' in transactions_df.columns:
-            # Get risk scores in batches to avoid too many API calls
-            batch_size = 50
-            for i in range(0, len(transactions_df), batch_size):
-                batch = transactions_df.iloc[i:i+batch_size]
-                signatures = batch['signature'].tolist()
-                
-                for signature in signatures:
-                    risk_data = range_collector.get_transaction_risk(signature)
-                    if risk_data:
-                        mask = transactions_df['signature'] == signature
-                        transactions_df.loc[mask, 'risk_score'] = risk_data.get('risk_score', 0)
-                        transactions_df.loc[mask, 'risk_factors'] = str(risk_data.get('risk_factors', []))
-        
-        return transactions_df
-    
+            tx_time = None
+            # Extract timestamp (similar logic as in DustingAnalyzer)
+            if "blockTime" in tx and tx["blockTime"] is not None:
+                tx_time = tx["blockTime"]
+            elif "block_time" in tx and tx["block_time"] is not None:
+                 # Handle string, datetime, or timestamp formats
+                 if isinstance(tx["block_time"], str):
+                     try: tx_time = datetime.fromisoformat(tx["block_time"].replace("Z", "+00:00")).timestamp()
+                     except ValueError: pass
+                 elif isinstance(tx["block_time"], (datetime, pd.Timestamp)): tx_time = tx["block_time"].timestamp()
+                 elif isinstance(tx["block_time"], (int, float)): tx_time = tx["block_time"]
+
+            if tx_time is None or tx_time >= cutoff_timestamp:
+                filtered_txs.append(tx)
+
+        return filtered_txs
+
     def build_transaction_graph(self, transactions_df, include_tokens=True):
         """
         Build a graph representation of transaction flows
@@ -746,17 +771,7 @@ class TransactionAnalyzer:
         return stats
     
     def analyze_transactions(self, address=None, signatures=None, days=30):
-        """
-        Perform comprehensive transaction analysis
-        
-        Args:
-            address (str, optional): Address to analyze. Defaults to None.
-            signatures (list, optional): List of transaction signatures. Defaults to None.
-            days (int, optional): Number of days to look back. Defaults to 30.
-            
-        Returns:
-            dict: Comprehensive analysis results
-        """
+        """Analyzes transactions for suspicious patterns."""
         self.logger.info(f"Analyzing transactions for {'address ' + address if address else 'signatures'}")
         
         # Fetch transactions

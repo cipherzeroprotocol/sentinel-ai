@@ -63,17 +63,18 @@ class MixerDetector:
         self.relationship_mapper = RelationshipMapper()
         self.ai_analyzer = AIAnalyzer()
     
-    def analyze(self, address):
+    def analyze(self, address, days=30):
         """
         Analyze an address to determine if it's a mixer
         
         Args:
             address (str): Address to analyze
+            days (int, optional): Number of days to look back for transactions, defaults to 30
             
         Returns:
             dict: Analysis results
         """
-        logger.info(f"Starting mixer analysis for address {address}")
+        logger.info(f"Starting mixer analysis for address {address}, looking back {days} days")
         
         if not address:
             logger.error("No address provided for mixer analysis")
@@ -89,8 +90,8 @@ class MixerDetector:
         address_data = self._collect_address_data(address)
         analysis_data['address_data'] = address_data
         
-        # Collect transaction data
-        transactions = self._collect_transactions(address, limit=500)  # Larger limit for mixers
+        # Collect transaction data with days parameter
+        transactions = self._collect_transactions(address, limit=500, days=days)
         analysis_data['transactions'] = transactions
         
         # Detect patterns
@@ -163,13 +164,13 @@ class MixerDetector:
         
         # Try to get address data from database first
         db_address_data = get_address_data(address)
-        if db_address_data:
+        if (db_address_data):
             address_data.update(db_address_data)
         
         # Get address data from Range API
         try:
             range_address_data = range_collector.get_address_info(address)
-            if range_address_data:
+            if (range_address_data):
                 address_data.update(range_address_data)
         except Exception as e:
             logger.error(f"Error getting address data from Range: {str(e)}")
@@ -177,7 +178,7 @@ class MixerDetector:
         # Get risk data from Range API
         try:
             risk_data = range_collector.get_address_risk_score(address)
-            if risk_data:
+            if (risk_data):
                 address_data['risk_score'] = risk_data.get('risk_score')
                 address_data['risk_factors'] = risk_data.get('risk_factors', [])
         except Exception as e:
@@ -185,13 +186,14 @@ class MixerDetector:
         
         return address_data
     
-    def _collect_transactions(self, address, limit=200):
+    def _collect_transactions(self, address, limit=200, days=30):
         """
         Collect transactions for an address
         
         Args:
             address (str): Address to collect transactions for
             limit (int): Maximum number of transactions to collect
+            days (int): Number of days to look back for transactions
             
         Returns:
             list: Transactions
@@ -223,6 +225,33 @@ class MixerDetector:
                         existing_sigs.add(tx['signature'])
         except Exception as e:
             logger.error(f"Error getting transactions from Range: {str(e)}")
+        
+        # Filter transactions by date if we have enough data
+        if days > 0:
+            filtered_transactions = []
+            cutoff_time = datetime.now().timestamp() - (days * 24 * 60 * 60)
+            
+            for tx in transactions:
+                tx_time = None
+                # Extract timestamp from different possible formats
+                if "blockTime" in tx:
+                    tx_time = tx["blockTime"]
+                elif "block_time" in tx:
+                    if isinstance(tx["block_time"], str):
+                        try:
+                            # Try to convert ISO format string to timestamp
+                            tx_time = datetime.fromisoformat(tx["block_time"].replace("Z", "+00:00")).timestamp()
+                        except:
+                            pass
+                    elif isinstance(tx["block_time"], datetime):
+                        tx_time = tx["block_time"].timestamp()
+                
+                # Include transaction if it's within the time range or if we can't determine the time
+                if tx_time is None or tx_time >= cutoff_time:
+                    filtered_transactions.append(tx)
+            
+            logger.info(f"Filtered transactions from {len(transactions)} to {len(filtered_transactions)} based on {days} day limit")
+            return filtered_transactions
         
         return transactions
     
@@ -297,8 +326,8 @@ class MixerDetector:
             # Check for fixed denominations
             if len(df) >= 10:  # Need enough transactions for clustering
                 amount_clusters = self._detect_amount_clusters(df)
-                pattern_analysis["denomination_clusters"] = amount_clusters
-                
+                pattern_analysis["denomination_clusters"] = amount_clusters # Store clusters in the result
+
                 # Check if there are clear denomination clusters
                 if amount_clusters and len(amount_clusters) >= 2:
                     total_txs = sum(cluster['count'] for cluster in amount_clusters)
@@ -332,7 +361,8 @@ class MixerDetector:
             pattern_analysis["batch_transactions"] = batch_score > 0.6
             
             # Calculate transaction scores for each transaction
-            pattern_analysis["transaction_scores"] = self._calculate_transaction_scores(df)
+            # Pass the pattern_analysis dict containing clusters
+            pattern_analysis["transaction_scores"] = self._calculate_transaction_scores(df, pattern_analysis)
         
         except Exception as e:
             logger.error(f"Error analyzing transaction patterns: {str(e)}")
@@ -643,12 +673,13 @@ class MixerDetector:
             logger.error(f"Error detecting batch transactions: {str(e)}")
             return 0.0
     
-    def _calculate_transaction_scores(self, df):
+    def _calculate_transaction_scores(self, df, pattern_analysis):
         """
         Calculate mixer-characteristic scores for each transaction
         
         Args:
             df (pandas.DataFrame): Transaction dataframe
+            pattern_analysis (dict): Pattern analysis results
             
         Returns:
             list: Transaction scores
@@ -660,7 +691,9 @@ class MixerDetector:
         try:
             # Get amount clusters for reference
             amount_col = "amount_usd" if "amount_usd" in df and not df["amount_usd"].isna().all() else "amount"
-            
+            # Retrieve clusters from the passed pattern_analysis dictionary
+            denomination_clusters = pattern_analysis.get("denomination_clusters", [])
+
             transaction_scores = []
             
             # Analyze each transaction
@@ -676,8 +709,8 @@ class MixerDetector:
                 }
                 
                 # Check for fixed denomination
-                if "denomination_clusters" in globals():
-                    for cluster in globals()["denomination_clusters"]:
+                if denomination_clusters: # Check if clusters exist
+                    for cluster in denomination_clusters:
                         if (row[amount_col] >= cluster["min"] and 
                             row[amount_col] <= cluster["max"]):
                             tx_score["score"] += 0.3

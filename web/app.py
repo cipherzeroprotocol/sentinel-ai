@@ -37,6 +37,10 @@ except ImportError as e:
     print(f"Current Python path: {sys.path}")
     sys.exit(1)
 
+# Add these lines at the top of your app.py file after imports
+import importlib
+import sentinel.analysis.bounties.mixer_detector
+importlib.reload(sentinel.analysis.bounties.mixer_detector)
 
 # Initialize Flask app
 app = Flask(__name__)
@@ -89,7 +93,7 @@ try:
     money_laundering_detector = MoneyLaunderingAnalyzer()  # No parameters 
     rugpull_detector = RugpullDetector()  # No parameters - doesn't accept DB_PATH
     mixer_detector = MixerDetector()  # No parameters
-    dusting_analyzer = DustingAnalyzer(DB_PATH)  # Pass DB_PATH if required
+    dusting_analyzer = DustingAnalyzer(DB_PATH)  # Pass DB_PATH if required, AIAnalyzer is now internal
     transaction_analyzer = TransactionAnalyzer(DB_PATH)  # Pass DB_PATH if required
     wallet_profiler = WalletProfiler(DB_PATH)  # Pass DB_PATH if required
 
@@ -142,12 +146,15 @@ def api_analyze():
             elif analysis_type == report_type and not token:
                  logger.warning(f"ICO analysis requested but no token provided.")
 
+        # Ensure the key here matches the template key in ai_analyzer.py
         if analysis_type == 'money_laundering' or analysis_type == 'all':
-            report_type = 'money_laundering'
+            report_type = 'money_laundering' # Use consistent key
             if address and money_laundering_detector:
                 logger.info(f"Running Money Laundering analysis for address: {address}, days: {days}")
                 # Fix: Use the correct analyze method, which only takes address
-                results[report_type] = money_laundering_detector.analyze(address) # Corrected method call (removed days)
+                # Assuming money_laundering_detector.analyze takes address and optionally days
+                # Adjust based on the actual signature of money_laundering_detector.analyze
+                results[report_type] = money_laundering_detector.analyze(address, days=days) # Pass days if supported
                 analysis_performed_count += 1
             elif analysis_type == report_type and not address:
                  logger.warning(f"Money Laundering analysis requested but no address provided.")
@@ -166,7 +173,7 @@ def api_analyze():
             report_type = 'mixer'
             if address and mixer_detector:
                 logger.info(f"Running Mixer analysis for address: {address}, days: {days}")
-                # Fix: Use the correct method name for mixer_detector
+                # Now correctly pass the days parameter to the analyze method
                 results[report_type] = mixer_detector.analyze(address, days=days)
                 analysis_performed_count += 1
             elif analysis_type == report_type and not address:
@@ -203,7 +210,8 @@ def api_analyze():
         # --- Generate Report ---
         report_path = None
         # Generate report only if a specific type was requested (not 'all') and analysis ran
-        if analysis_type != 'all' and analysis_performed_count > 0:
+        # Also skip report generation for types without dedicated reports yet (wallet, transaction)
+        if analysis_type != 'all' and analysis_performed_count > 0 and analysis_type not in ['wallet', 'transaction']:
             try:
                 logger.info(f"Generating {analysis_type} report for target: {target}")
                 # Pass the specific result block for the requested analysis type
@@ -222,6 +230,9 @@ def api_analyze():
             except Exception as report_e:
                 logger.exception(f"Failed to generate report for {target} (type: {analysis_type}): {report_e}")
                 # Don't let report generation failure stop the API response if analysis succeeded
+        elif analysis_type in ['wallet', 'transaction']:
+             logger.info(f"Report generation skipped for analysis type: {analysis_type}")
+
 
         if analysis_performed_count == 0:
              # If 'all' was requested but nothing matched address/token, or specific type failed prerequisite

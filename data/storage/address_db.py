@@ -210,11 +210,25 @@ def save_address_data(address, data):
                 db_address.labels = data['labels']
         
         if 'first_seen' in data:
-            db_address.first_seen = data['first_seen']
-        
+            # Ensure datetime object if string
+            if isinstance(data['first_seen'], str):
+                try:
+                    db_address.first_seen = datetime.fromisoformat(data['first_seen'].replace('Z', '+00:00'))
+                except ValueError:
+                    logger.warning(f"Could not parse first_seen timestamp: {data['first_seen']}")
+            elif isinstance(data['first_seen'], datetime):
+                 db_address.first_seen = data['first_seen']
+
         if 'last_seen' in data:
-            db_address.last_seen = data['last_seen']
-        
+            # Ensure datetime object if string
+            if isinstance(data['last_seen'], str):
+                try:
+                    db_address.last_seen = datetime.fromisoformat(data['last_seen'].replace('Z', '+00:00'))
+                except ValueError:
+                    logger.warning(f"Could not parse last_seen timestamp: {data['last_seen']}")
+            elif isinstance(data['last_seen'], datetime):
+                 db_address.last_seen = data['last_seen']
+
         if 'is_contract' in data:
             db_address.is_contract = data['is_contract']
         
@@ -235,36 +249,25 @@ def save_transactions(address, transactions):
     Save transactions to the database
     
     Args:
-        address (str): Address the transactions belong to
+        address (str): Address to save transactions for
         transactions (list): List of transaction data
     """
-    if not transactions:
-        logger.warning(f"No transactions to save for {address}")
-        return
-    
     session = Session()
     try:
         # Get address ID
         db_address = session.query(Address).filter(Address.address == address).first()
         
         if not db_address:
-            # Create new address
-            db_address = Address(address=address, network='solana')
-            session.add(db_address)
-            session.commit()
+            logger.warning(f"Address {address} not found, cannot save transactions")
+            return
         
-        # Save transactions
         for tx_data in transactions:
-            tx_hash = None
-            if 'signature' in tx_data:
-                tx_hash = tx_data['signature']
-            elif 'signatures' in tx_data and tx_data['signatures']:
-                tx_hash = tx_data['signatures'][0]
-            
+            # Use signature as hash if available
+            tx_hash = tx_data.get('signature') or tx_data.get('hash')
             if not tx_hash:
-                logger.warning(f"Transaction has no hash, skipping: {tx_data}")
+                logger.warning(f"Skipping transaction without hash/signature: {tx_data}")
                 continue
-            
+
             # Check if transaction exists
             tx = session.query(Transaction).filter(Transaction.hash == tx_hash).first()
             
@@ -275,30 +278,72 @@ def save_transactions(address, transactions):
             
             # Update transaction data
             if 'blockTime' in tx_data:
-                tx.block_time = datetime.fromtimestamp(tx_data['blockTime'])
-            
+                try:
+                    tx.block_time = datetime.fromtimestamp(tx_data['blockTime'])
+                except (TypeError, ValueError):
+                     logger.warning(f"Could not parse blockTime: {tx_data['blockTime']}")
+            elif 'block_time' in tx_data:
+                 if isinstance(tx_data['block_time'], str):
+                     try:
+                         tx.block_time = datetime.fromisoformat(tx_data['block_time'].replace('Z', '+00:00'))
+                     except ValueError:
+                         logger.warning(f"Could not parse block_time string: {tx_data['block_time']}")
+                 elif isinstance(tx_data['block_time'], datetime):
+                     tx.block_time = tx_data['block_time']
+
+
             if 'slot' in tx_data:
                 tx.block_number = tx_data['slot']
-            
+            elif 'block_number' in tx_data:
+                 tx.block_number = tx_data['block_number']
+
+            # Handle success/error status
             if 'meta' in tx_data and 'err' in tx_data['meta']:
                 tx.success = tx_data['meta']['err'] is None
-            
+            elif 'success' in tx_data:
+                 tx.success = tx_data['success']
+
             if 'meta' in tx_data and 'fee' in tx_data['meta']:
                 tx.fee = tx_data['meta']['fee']
-            
+            elif 'fee' in tx_data:
+                 tx.fee = tx_data['fee']
+
             # Parse program ID and instruction name
+            program_id = None
+            instruction_name = None
             if 'transaction' in tx_data and 'message' in tx_data['transaction'] and 'instructions' in tx_data['transaction']['message']:
                 instructions = tx_data['transaction']['message']['instructions']
                 if instructions:
-                    if 'programId' in instructions[0]:
-                        tx.program_id = instructions[0]['programId']
-                    
-                    if 'parsed' in instructions[0] and 'type' in instructions[0]['parsed']:
-                        tx.instruction_name = instructions[0]['parsed']['type']
-            
-            # Save full transaction data as JSON
-            tx.data = json.dumps(tx_data)
-            
+                    # Use the first instruction's program ID
+                    program_id = instructions[0].get('programId')
+                    # Try to parse instruction name (might need specific decoders)
+                    # Placeholder: Use program ID if name not available
+                    instruction_name = instructions[0].get('parsed', {}).get('type') or program_id
+            elif 'program_id' in tx_data:
+                 program_id = tx_data['program_id']
+                 instruction_name = tx_data.get('instruction_name') or program_id # Fallback
+
+            tx.program_id = program_id
+            tx.instruction_name = instruction_name
+
+            # Add value and value_usd if available
+            if 'amount' in tx_data:
+                 tx.value = tx_data['amount']
+            elif 'value' in tx_data:
+                 tx.value = tx_data['value']
+
+            if 'amount_usd' in tx_data:
+                 tx.value_usd = tx_data['amount_usd']
+            elif 'value_usd' in tx_data:
+                 tx.value_usd = tx_data['value_usd']
+
+            # Store raw data as JSON
+            try:
+                tx.data = json.dumps(tx_data)
+            except (TypeError, ValueError) as json_err:
+                logger.warning(f"Could not serialize transaction data to JSON for {tx_hash}: {json_err}")
+                tx.data = json.dumps({"error": "Serialization failed"})
+
         session.commit()
         logger.info(f"Saved {len(transactions)} transactions for {address}")
     
@@ -315,19 +360,15 @@ def save_risk_data(address, risk_data):
     
     Args:
         address (str): Address to save risk data for
-        risk_data (dict): Risk data
+        risk_data (dict): Risk data (should contain risk_score, risk_level, risk_factors)
     """
-    if not risk_data:
-        logger.warning(f"No risk data to save for {address}")
-        return
-    
     session = Session()
     try:
         # Get address
         db_address = session.query(Address).filter(Address.address == address).first()
         
         if not db_address:
-            # Create new address
+            logger.warning(f"Address {address} not found, creating new entry to save risk data")
             db_address = Address(address=address, network='solana')
             session.add(db_address)
         
@@ -339,8 +380,13 @@ def save_risk_data(address, risk_data):
             db_address.risk_level = risk_data['risk_level']
         
         if 'risk_factors' in risk_data:
-            db_address.risk_factors = json.dumps(risk_data['risk_factors'])
-        
+            try:
+                # Ensure risk_factors is serializable
+                db_address.risk_factors = json.dumps(risk_data['risk_factors'])
+            except (TypeError, ValueError) as json_err:
+                 logger.error(f"Could not serialize risk factors for {address}: {json_err}")
+                 db_address.risk_factors = json.dumps([{"error": "Serialization failed"}])
+
         db_address.updated_at = datetime.now()
         
         session.commit()
@@ -358,44 +404,33 @@ def save_counterparties(address, counterparties):
     Save counterparties for an address
     
     Args:
-        address (str): Address the counterparties belong to
+        address (str): Address to save counterparties for
         counterparties (list): List of counterparty data
     """
-    if not counterparties:
-        logger.warning(f"No counterparties to save for {address}")
-        return
-    
     session = Session()
     try:
         # Get address ID
         db_address = session.query(Address).filter(Address.address == address).first()
         
         if not db_address:
-            # Create new address
-            db_address = Address(address=address, network='solana')
-            session.add(db_address)
-            session.commit()
+            logger.warning(f"Address {address} not found, cannot save counterparties")
+            return
         
-        # Save counterparties
         for cp_data in counterparties:
-            cp_address = cp_data.get('address')
-            
-            if not cp_address:
-                logger.warning(f"Counterparty has no address, skipping: {cp_data}")
+            cp_address_str = cp_data.get('address') or cp_data.get('counterparty_address')
+            if not cp_address_str:
+                logger.warning(f"Skipping counterparty without address: {cp_data}")
                 continue
-            
+
             # Check if counterparty exists
             cp = session.query(Counterparty).filter(
                 Counterparty.address_id == db_address.id,
-                Counterparty.counterparty_address == cp_address
+                Counterparty.counterparty_address == cp_address_str
             ).first()
             
             if not cp:
                 # Create new counterparty
-                cp = Counterparty(
-                    address_id=db_address.id,
-                    counterparty_address=cp_address
-                )
+                cp = Counterparty(address_id=db_address.id, counterparty_address=cp_address_str)
                 session.add(cp)
             
             # Update counterparty data
@@ -404,21 +439,33 @@ def save_counterparties(address, counterparties):
             
             if 'sent_volume_usd' in cp_data:
                 cp.sent_volume = cp_data['sent_volume_usd']
-            
+            elif 'sent_volume' in cp_data: # Fallback
+                 cp.sent_volume = cp_data['sent_volume']
+
             if 'received_volume_usd' in cp_data:
                 cp.received_volume = cp_data['received_volume_usd']
-            
+            elif 'received_volume' in cp_data: # Fallback
+                 cp.received_volume = cp_data['received_volume']
+
             if 'first_interaction' in cp_data:
-                if isinstance(cp_data['first_interaction'], int):
-                    cp.first_interaction = datetime.fromtimestamp(cp_data['first_interaction'])
-                else:
-                    cp.first_interaction = cp_data['first_interaction']
-            
+                 # Ensure datetime object if string
+                 if isinstance(cp_data['first_interaction'], str):
+                     try:
+                         cp.first_interaction = datetime.fromisoformat(cp_data['first_interaction'].replace('Z', '+00:00'))
+                     except ValueError:
+                         logger.warning(f"Could not parse first_interaction timestamp: {cp_data['first_interaction']}")
+                 elif isinstance(cp_data['first_interaction'], datetime):
+                     cp.first_interaction = cp_data['first_interaction']
+
             if 'last_interaction' in cp_data:
-                if isinstance(cp_data['last_interaction'], int):
-                    cp.last_interaction = datetime.fromtimestamp(cp_data['last_interaction'])
-                else:
-                    cp.last_interaction = cp_data['last_interaction']
+                 # Ensure datetime object if string
+                 if isinstance(cp_data['last_interaction'], str):
+                     try:
+                         cp.last_interaction = datetime.fromisoformat(cp_data['last_interaction'].replace('Z', '+00:00'))
+                     except ValueError:
+                         logger.warning(f"Could not parse last_interaction timestamp: {cp_data['last_interaction']}")
+                 elif isinstance(cp_data['last_interaction'], datetime):
+                     cp.last_interaction = cp_data['last_interaction']
             
             if 'entity' in cp_data and 'name' in cp_data['entity']:
                 cp.entity_name = cp_data['entity']['name']
@@ -917,7 +964,12 @@ class AddressDatabase:
         """
         # Ensure the database schema is created
         init_db()
+        # Use the global engine defined at the top of the file
+        self.engine = engine
+        self.Session = sessionmaker(bind=self.engine)
         self.db_path = db_path if db_path else DATABASE_URL.replace("sqlite:///", "")
+        logger.info(f"AddressDatabase initialized with engine: {self.engine}")
+
 
     def save_address_data(self, address, data):
         """Wraps the module-level save_address_data function."""
@@ -966,6 +1018,39 @@ class AddressDatabase:
     def export_address_data_to_csv(self, address, file_path):
         """Wraps the module-level export_address_data_to_csv function."""
         return export_address_data_to_csv(address, file_path)
+
+    def search_entities(self, query):
+        """
+        Search for addresses or entities by name, label, or address prefix.
+        """
+        session = self.Session()
+        try:
+            # Search by address prefix
+            address_matches = session.query(Address).filter(Address.address.like(f"{query}%")).limit(10).all()
+            # Search by entity name
+            name_matches = session.query(Address).filter(Address.entity_name.ilike(f"%{query}%")).limit(10).all()
+            # Search by labels
+            label_matches = session.query(Address).filter(Address.labels.ilike(f"%{query}%")).limit(10).all()
+
+            # Combine and deduplicate results
+            results_dict = {}
+            for addr in address_matches + name_matches + label_matches:
+                if addr.address not in results_dict:
+                    results_dict[addr.address] = {
+                        'address': addr.address,
+                        'entity_name': addr.entity_name,
+                        'entity_type': addr.entity_type,
+                        'labels': addr.labels.split(',') if addr.labels else [],
+                        'risk_score': addr.risk_score,
+                        'risk_level': addr.risk_level
+                    }
+            
+            return list(results_dict.values())
+        except Exception as e:
+            logger.error(f"Error searching entities for query '{query}': {str(e)}")
+            return []
+        finally:
+            session.close()
 
 # Initialize database if this script is run directly (optional, as class init does it)
 if __name__ == "__main__":

@@ -37,7 +37,7 @@ except ImportError:
 # Get API key from environment variables
 OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
 if not OPENAI_API_KEY and OPENAI_AVAILABLE: # Check OPENAI_AVAILABLE here
-    logger.warning("OPENAI_API_KEY not found in environment variables. AI Analyzer will not function.")
+    logger.warning("OPENAI_API_KEY not found in environment variables. AI Analyzer will not function. Please set the OPENAI_API_KEY environment variable.")
 
 class AIAnalyzer:
     """
@@ -55,9 +55,11 @@ class AIAnalyzer:
 
         # Check if API key is available and OpenAI is installed
         if not self.api_key:
-            warnings.warn("OPENAI_API_KEY not set in environment variables. AI analysis will be limited.")
+            # Warning already issued above
+            pass
         elif not OPENAI_AVAILABLE:
-            warnings.warn("OpenAI package not installed. Install with: pip install openai")
+            # Warning already issued above
+            pass
         else:
             # Initialize OpenAI client using the new method
             try:
@@ -67,7 +69,7 @@ class AIAnalyzer:
                 self.ai_available = True
                 logger.info(f"AI analysis capabilities initialized successfully using model {self.model}")
             except AuthenticationError as auth_err:
-                logger.error(f"OpenAI Authentication Error during initialization: {auth_err}. Check your API key.")
+                logger.error(f"OpenAI Authentication Error during initialization: {auth_err}. Check your API key configuration.")
             except Exception as e:
                 logger.error(f"Error initializing OpenAI client: {e}")
 
@@ -90,7 +92,7 @@ class AIAnalyzer:
         # Define template files mapping analysis_type to filename
         template_files = {
             "ico": "ico_analysis.txt",
-            "money_laundering": "laundering_detection.txt", # Corrected key
+            "money_laundering": "money_laundering_detection.txt", # Corrected key and filename
             "rugpull": "rugpull_analysis.txt",
             "mixer": "mixer_analysis.txt",
             "dusting": "dusting_analysis.txt",

@@ -4,7 +4,7 @@ Money Laundering Analysis Module for detecting suspicious transaction patterns
 import logging
 import os
 import sys
-from datetime import datetime
+from datetime import datetime, timedelta
 import json
 
 # Add the project root to the Python path
@@ -37,17 +37,18 @@ class MoneyLaunderingAnalyzer:
         self.relationship_mapper = RelationshipMapper()
         self.ai_analyzer = AIAnalyzer()
     
-    def analyze(self, address):
+    def analyze(self, address, days=90): # Added days parameter with default
         """
         Analyze an address for money laundering patterns
         
         Args:
             address (str): Address to analyze
+            days (int, optional): Number of days of history to analyze. Defaults to 90.
             
         Returns:
             dict: Analysis results
         """
-        logger.info(f"Starting money laundering analysis for address {address}")
+        logger.info(f"Starting money laundering analysis for address {address}, looking back {days} days")
         
         if not address:
             logger.error("No address provided for money laundering analysis")
@@ -60,8 +61,8 @@ class MoneyLaunderingAnalyzer:
         address_data = self._collect_address_data(address)
         analysis_data['address_data'] = address_data
         
-        # Collect transaction data
-        transactions = self._collect_transactions(address)
+        # Collect transaction data using the 'days' parameter
+        transactions = self._collect_transactions(address, days=days) # Pass days here
         analysis_data['transactions'] = transactions
         
         # Detect patterns
@@ -145,13 +146,14 @@ class MoneyLaunderingAnalyzer:
         
         return address_data
     
-    def _collect_transactions(self, address, limit=200):
+    def _collect_transactions(self, address, limit=200, days=90): # Added days parameter
         """
         Collect transactions for an address
         
         Args:
             address (str): Address to collect transactions for
-            limit (int): Maximum number of transactions to collect
+            limit (int): Maximum number of transactions to collect per source
+            days (int): Number of days of history to collect
             
         Returns:
             list: Transactions
@@ -160,6 +162,7 @@ class MoneyLaunderingAnalyzer:
         
         # Get transactions from Helius API
         try:
+            # Helius might not directly support 'days', fetch recent and filter later
             helius_tx_data = helius_collector.get_transaction_history(address, limit)
             
             # Get full transaction details
@@ -173,6 +176,7 @@ class MoneyLaunderingAnalyzer:
         
         # Get transactions from Range API for broader coverage
         try:
+            # Range might not directly support 'days', fetch recent and filter later
             range_tx_data = range_collector.get_address_transactions(address, limit=limit)
             if range_tx_data and 'transactions' in range_tx_data:
                 # Only add transactions that aren't already in the list
@@ -183,7 +187,36 @@ class MoneyLaunderingAnalyzer:
                         existing_sigs.add(tx['signature'])
         except Exception as e:
             logger.error(f"Error getting transactions from Range: {str(e)}")
-        
+
+        # Filter transactions by date
+        if days > 0:
+            filtered_transactions = []
+            cutoff_timestamp = (datetime.now() - timedelta(days=days)).timestamp()
+
+            for tx in transactions:
+                tx_time = None
+                # Extract timestamp from different possible formats
+                if "blockTime" in tx and tx["blockTime"] is not None:
+                    tx_time = tx["blockTime"]
+                elif "block_time" in tx and tx["block_time"] is not None:
+                    if isinstance(tx["block_time"], str):
+                        try:
+                            # Try to convert ISO format string to timestamp
+                            tx_time = datetime.fromisoformat(tx["block_time"].replace("Z", "+00:00")).timestamp()
+                        except ValueError:
+                            logger.warning(f"Could not parse block_time string: {tx['block_time']}")
+                    elif isinstance(tx["block_time"], (int, float)):
+                         tx_time = tx["block_time"]
+                    elif isinstance(tx["block_time"], datetime):
+                         tx_time = tx["block_time"].timestamp()
+
+                # Include transaction if it's within the time range or if we can't determine the time
+                if tx_time is None or tx_time >= cutoff_timestamp:
+                    filtered_transactions.append(tx)
+
+            logger.info(f"Filtered transactions from {len(transactions)} to {len(filtered_transactions)} based on {days} day limit")
+            return filtered_transactions
+
         return transactions
     
     def _detect_patterns(self, transactions, address=None):

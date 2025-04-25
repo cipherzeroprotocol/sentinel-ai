@@ -20,81 +20,223 @@ from sklearn.ensemble import IsolationForest
 from sklearn.preprocessing import StandardScaler
 
 from analysis.shared.transaction_analyzer import TransactionAnalyzer
-import data.collectors.helius_collector as helius_collector
-import data.collectors.range_collector as range_collector
-import data.collectors.vybe_collector as vybe_collector
+from data.collectors import helius_collector, range_collector, vybe_collector
 from data.storage.address_db import AddressDatabase
+from ai.utils.ai_analyzer import AIAnalyzer # Assuming AIAnalyzer might be used later
 
-# Add the project root to the Python path
-# sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))) # Removed, assuming proper package structure
-
+logger = logging.getLogger(__name__)
 
 class WalletProfiler:
     """Shared component for profiling and classifying Solana wallets"""
     
-    def __init__(self, db_path=None):
-        """
-        Initialize the WalletProfiler
-        
-        Args:
-            db_path (str, optional): Path to the SQLite database. Defaults to None.
-        """
-        self.logger = logging.getLogger(__name__)
-        self.db = AddressDatabase(db_path)
-        self.transaction_analyzer = TransactionAnalyzer(db_path)
-        
-        # Wallet classification categories
-        self.wallet_categories = {
-            "exchange": {
-                "description": "Centralized exchange wallet",
-                "features": ["high_volume", "balanced_in_out", "many_counterparties"]
-            },
-            "whale": {
-                "description": "Large holder wallet",
-                "features": ["high_balance", "large_transactions", "low_transaction_frequency"]
-            },
-            "trader": {
-                "description": "Active trader wallet",
-                "features": ["high_frequency", "dex_interaction", "token_diversity"]
-            },
-            "bot": {
-                "description": "Automated trading bot",
-                "features": ["very_high_frequency", "pattern_consistency", "small_transactions"]
-            },
-            "mixer": {
-                "description": "Cryptocurrency mixing service",
-                "features": ["balanced_in_out", "consistent_amounts", "high_privacy"]
-            },
-            "miner": {
-                "description": "Mining/Validator wallet",
-                "features": ["regular_income", "staking_rewards", "validator_interaction"]
-            },
-            "dapp": {
-                "description": "Decentralized application",
-                "features": ["program_interaction", "contract_calls", "service_patterns"]
-            },
-            "contract": {
-                "description": "Smart contract",
-                "features": ["is_program", "no_outgoing", "internal_transactions"]
-            },
-            "project_treasury": {
-                "description": "Project treasury or multisig",
-                "features": ["controlled_outflow", "large_balance", "multisig_patterns"]
-            },
-            "nft_trader": {
-                "description": "NFT trader/collector",
-                "features": ["nft_interactions", "marketplace_usage", "collection_holdings"]
-            },
-            "laundering": {
-                "description": "Potential money laundering wallet",
-                "features": ["layering_behavior", "mixer_interaction", "bridge_hopping"]
-            },
-            "scammer": {
-                "description": "Potential scam operator",
-                "features": ["phishing_patterns", "rugpull_connections", "victim_inflows"]
+    # Define wallet categories and their characteristics
+    wallet_categories = {
+        "individual_user": {
+            "description": "Standard user wallet for personal transactions, DeFi, NFTs.",
+            "keywords": ["transfer", "swap", "stake", "mint", "approve"],
+            "patterns": {
+                "tx_frequency": (1, 100), # Low to moderate
+                "volume_range_usd": (1, 100000), # Wide range
+                "counterparty_diversity": "moderate",
+                "program_interactions": ["system", "spl-token", "associated-token-account", "jupiter", "raydium", "orca", "metaplex", "stake"]
+            }
+        },
+        "exchange_deposit": {
+            "description": "Wallet primarily used for depositing funds into a centralized exchange.",
+            "keywords": ["transfer"],
+            "patterns": {
+                "tx_frequency": (1, 10), # Low
+                "volume_range_usd": (10, 1000000), # Medium to high
+                "counterparty_diversity": "low", # Usually one CEX address
+                "program_interactions": ["system", "spl-token", "associated-token-account"]
+            }
+        },
+        "smart_contract": {
+            "description": "Address representing a deployed program or smart contract.",
+            "keywords": ["invoke", "initialize", "execute"],
+            "patterns": {
+                "tx_frequency": (0, 10000), # Variable, can be high if popular
+                "volume_range_usd": (0, 100000000), # Can hold large value
+                "counterparty_diversity": "high", # Interacts with many users
+                "program_interactions": ["self", "system", "bpf-loader"] # Interacts with itself or system programs
+            }
+        },
+        "defi_protocol": {
+            "description": "Wallet associated with a DeFi protocol (e.g., LP token account, protocol treasury).",
+            "keywords": ["swap", "add_liquidity", "remove_liquidity", "stake", "claim"],
+            "patterns": {
+                "tx_frequency": (10, 10000), # Moderate to high
+                "volume_range_usd": (1000, 1000000000), # High value locked
+                "counterparty_diversity": "high",
+                "program_interactions": ["specific DeFi programs", "spl-token", "system"]
+            }
+        },
+        "nft_collector": {
+            "description": "Wallet primarily focused on minting, buying, selling, or holding NFTs.",
+            "keywords": ["mint", "transfer", "list", "bid", "purchase", "metaplex"],
+            "patterns": {
+                "tx_frequency": (1, 500), # Low to moderate
+                "volume_range_usd": (1, 500000), # Variable
+                "counterparty_diversity": "moderate",
+                "program_interactions": ["metaplex", "magic-eden", "tensor", "spl-token", "system"]
+            }
+        },
+        "bot": {
+            "description": "Automated wallet performing specific tasks (e.g., arbitrage, MEV, spam).",
+            "keywords": ["swap", "transfer", "crank"],
+            "patterns": {
+                "tx_frequency": (100, 100000), # High to very high
+                "volume_range_usd": (0.01, 1000000), # Variable, can be low value spam
+                "counterparty_diversity": "variable",
+                "program_interactions": ["specific target programs", "system", "spl-token"]
+            }
+        },
+        "project_treasury": {
+            "description": "Wallet holding funds for a specific project or DAO.",
+            "keywords": ["transfer", "multi-sig", "vesting"],
+            "patterns": {
+                "tx_frequency": (1, 50), # Low
+                "volume_range_usd": (10000, 1000000000), # High value
+                "counterparty_diversity": "low_to_moderate", # Team members, exchanges, protocols
+                "program_interactions": ["multi-sig programs", "vesting contracts", "spl-token", "system"]
+            }
+        },
+        "laundering": {
+            "description": "Wallet potentially involved in money laundering activities.",
+            "keywords": ["transfer", "swap", "bridge"],
+            "patterns": {
+                "tx_frequency": (10, 1000), # Moderate to high
+                "volume_range_usd": (100, 10000000), # Medium to high
+                "counterparty_diversity": "high", # Layering involves many addresses
+                "program_interactions": ["mixers", "bridges", "dexes", "high-risk entities"]
             }
         }
+        # Add more categories as needed
+    }
     
+    def __init__(self, db_path=None):
+        self.db_path = db_path
+        self.db = AddressDatabase(db_path) if db_path else None
+        # Initialize AI Analyzer if needed for advanced profiling
+        # self.ai_analyzer = AIAnalyzer()
+        logger.info("WalletProfiler initialized.")
+
+    def get_transactions(self, address, days=90, limit=1000):
+        """Fetches transactions for an address, prioritizing Helius."""
+        transactions = []
+        logger.info(f"Fetching transactions for {address} (last {days} days, limit {limit})")
+        try:
+            if helius_collector:
+                # Helius might not directly support 'days', fetch recent and filter
+                tx_history = helius_collector.get_transaction_history(address, limit=limit)
+                signatures = [tx['signature'] for tx in tx_history if 'signature' in tx]
+                logger.info(f"Fetched {len(signatures)} signatures from Helius for {address}.")
+
+                # Fetch details (can be slow)
+                fetched_count = 0
+                for sig in signatures:
+                    if fetched_count >= limit: break # Respect overall limit
+                    try:
+                        details = helius_collector.get_transaction_details(sig)
+                        if details:
+                            transactions.append(details)
+                            fetched_count += 1
+                    except Exception as detail_err:
+                        logger.warning(f"Failed to fetch details for tx {sig}: {detail_err}")
+                    time.sleep(0.05) # Basic rate limiting
+
+                logger.info(f"Fetched details for {len(transactions)} transactions from Helius.")
+
+            # Fallback or supplement with Range if Helius fails or provides insufficient data
+            if not transactions and range_collector:
+                logger.info(f"Falling back to Range for transactions for {address}")
+                range_tx_data = range_collector.get_address_transactions(address, limit=limit)
+                if range_tx_data and 'transactions' in range_tx_data:
+                    transactions = range_tx_data['transactions']
+                    logger.info(f"Fetched {len(transactions)} transactions from Range.")
+
+        except Exception as e:
+            logger.error(f"Error fetching transactions for {address}: {e}")
+
+        # Filter transactions by date
+        if days > 0 and transactions:
+            cutoff_timestamp = (datetime.now() - timedelta(days=days)).timestamp()
+            filtered_txs = []
+            for tx in transactions:
+                tx_time = None
+                # Extract timestamp from different possible formats
+                if "blockTime" in tx and tx["blockTime"] is not None:
+                    tx_time = tx["blockTime"]
+                elif "block_time" in tx and tx["block_time"] is not None:
+                    if isinstance(tx["block_time"], str):
+                        try:
+                            tx_time = datetime.fromisoformat(tx["block_time"].replace("Z", "+00:00")).timestamp()
+                        except ValueError: pass
+                    elif isinstance(tx["block_time"], (int, float)):
+                        tx_time = tx["block_time"]
+                    elif isinstance(tx["block_time"], datetime):
+                         tx_time = tx["block_time"].timestamp()
+
+                if tx_time is None or tx_time >= cutoff_timestamp:
+                    filtered_txs.append(tx)
+            logger.info(f"Filtered transactions from {len(transactions)} to {len(filtered_txs)} based on {days} day limit.")
+            return filtered_txs
+
+        return transactions
+
+    def get_entity_relationships(self, address, max_depth=1, days=90): # Added days, default 1 depth
+        """Get relationships using Range API."""
+        relationships = {'direct': [], 'indirect': []}
+        if not range_collector:
+            logger.warning("Range collector not available for relationship mapping.")
+            return relationships
+        try:
+            # Direct counterparties (Range API doesn't filter by days here)
+            # Remove 'days=days' as it's not supported by the underlying method
+            counterparties = range_collector.get_address_counterparties(address)
+            if counterparties and 'counterparties' in counterparties:
+                relationships['direct'] = counterparties['counterparties']
+                logger.info(f"Fetched {len(relationships['direct'])} direct counterparties for {address} from Range.")
+
+            # Indirect relationships (if depth > 1) - Requires graph traversal logic
+            # This part needs a more complex implementation, potentially using NetworkX
+            # and fetching transactions for direct counterparties.
+            if max_depth > 1:
+                logger.warning("Indirect relationship mapping (depth > 1) not fully implemented.")
+                # Placeholder: Fetch relationships for top direct counterparties
+                # for cp in relationships['direct'][:5]: # Limit indirect search
+                #     cp_address = cp.get('address')
+                #     if cp_address:
+                #         indirect_cps = range_collector.get_address_counterparties(cp_address)
+                #         if indirect_cps and 'counterparties' in indirect_cps:
+                #             relationships['indirect'].extend(indirect_cps['counterparties'])
+
+        except Exception as e:
+            logger.error(f"Error getting entity relationships for {address} from Range: {e}")
+        return relationships
+
+    def get_risk_assessment(self, address):
+        """Get risk score and factors using Range API."""
+        risk_info = {"risk_score": 0, "risk_level": "unknown", "factors": []}
+        if not range_collector:
+            logger.warning("Range collector not available for risk assessment.")
+            return risk_info
+        try:
+            risk_data = range_collector.get_address_risk_score(address)
+            if risk_data:
+                risk_info["risk_score"] = risk_data.get('risk_score', 0)
+                risk_info["factors"] = risk_data.get('risk_factors', [])
+                # Determine risk level based on score
+                score = risk_info["risk_score"]
+                if score >= 70: risk_info["risk_level"] = "high"
+                elif score >= 40: risk_info["risk_level"] = "medium"
+                elif score > 0: risk_info["risk_level"] = "low"
+                else: risk_info["risk_level"] = "none"
+                logger.info(f"Fetched risk assessment for {address} from Range: Score {score}, Level {risk_info['risk_level']}")
+        except Exception as e:
+            logger.error(f"Error getting risk assessment for {address} from Range: {e}")
+        return risk_info
+
     def extract_wallet_features(self, address, transactions_df=None, days=90):
         """
         Extract behavioral features from wallet transaction history
@@ -107,7 +249,7 @@ class WalletProfiler:
         Returns:
             dict: Extracted features
         """
-        self.logger.info(f"Extracting wallet features for {address}")
+        logger.info(f"Extracting wallet features for {address}")
         
         # If transactions are not provided, fetch them
         if transactions_df is None:
@@ -121,7 +263,7 @@ class WalletProfiler:
         }
         
         if transactions_df.empty:
-            self.logger.warning(f"No transactions found for {address}")
+            logger.warning(f"No transactions found for {address}")
             return features
         
         # Filter and prepare the data
@@ -256,7 +398,7 @@ class WalletProfiler:
                 
                 features['total_balance_usd'] = total_balance_usd
         except Exception as e:
-            self.logger.warning(f"Error fetching token balances: {e}")
+            logger.warning(f"Error fetching token balances: {e}")
             features['token_balance_count'] = 0
             features['total_balance_usd'] = 0
         
@@ -401,7 +543,7 @@ class WalletProfiler:
         Returns:
             dict: Classification results
         """
-        self.logger.info(f"Classifying wallet {features.get('address')}")
+        logger.info(f"Classifying wallet {features.get('address')}")
         
         # Define classification rules based on extracted features
         classifications = []
@@ -546,7 +688,7 @@ class WalletProfiler:
         Returns:
             dict: Detected anomalies
         """
-        self.logger.info(f"Detecting anomalies for wallet {address}")
+        logger.info(f"Detecting anomalies for wallet {address}")
         
         # If transactions are not provided, fetch them
         if transactions_df is None:
@@ -647,7 +789,7 @@ class WalletProfiler:
         Returns:
             dict: Entity relationship data
         """
-        self.logger.info(f"Mapping entity relationships for {address} (depth={max_depth})")
+        logger.info(f"Mapping entity relationships for {address} (depth={max_depth})")
         
         # Get initial info from Range API
         address_info = range_collector.get_address_info(address)
@@ -760,7 +902,7 @@ class WalletProfiler:
                             "includes_primary": address in community_addresses
                         })
                 except Exception as e:
-                    self.logger.warning(f"Error finding communities: {e}")
+                    logger.warning(f"Error finding communities: {e}")
         
         return relationships
     
@@ -776,7 +918,7 @@ class WalletProfiler:
         Returns:
             dict: Risk assessment data
         """
-        self.logger.info(f"Calculating risk score for {features.get('address')}")
+        logger.info(f"Calculating risk score for {features.get('address')}")
         
         # Initialize risk assessment
         risk_assessment = {
@@ -914,6 +1056,48 @@ class WalletProfiler:
         
         return risk_assessment
     
+    def _fetch_transactions(self, address, days=30):
+        """Fetches transactions for the wallet."""
+        try:
+            # Corrected method call: Use get_transaction_history
+            transactions = helius_collector.get_transaction_history(address) # Removed days=days if not supported by this func
+
+            # Apply filtering if needed (similar to DustingAnalyzer._filter_transactions_by_days)
+            if days > 0:
+                 transactions = self._filter_transactions_by_days(transactions, days) # Add this helper method if needed
+
+            return transactions
+        except Exception as e:
+            logger.error(f"Error fetching transactions for {address} in WalletProfiler: {e}")
+            return []
+
+    # Add this helper method if needed for filtering by days
+    def _filter_transactions_by_days(self, transactions, days):
+        """Filters transactions to include only those within the specified number of days."""
+        if not transactions or days <= 0:
+            return transactions
+
+        cutoff_timestamp = (datetime.now() - timedelta(days=days)).timestamp()
+        filtered_txs = []
+
+        for tx in transactions:
+            tx_time = None
+            # Extract timestamp (similar logic as in DustingAnalyzer)
+            if "blockTime" in tx and tx["blockTime"] is not None:
+                tx_time = tx["blockTime"]
+            elif "block_time" in tx and tx["block_time"] is not None:
+                 # Handle string, datetime, or timestamp formats
+                 if isinstance(tx["block_time"], str):
+                     try: tx_time = datetime.fromisoformat(tx["block_time"].replace("Z", "+00:00")).timestamp()
+                     except ValueError: pass
+                 elif isinstance(tx["block_time"], (datetime, pd.Timestamp)): tx_time = tx["block_time"].timestamp()
+                 elif isinstance(tx["block_time"], (int, float)): tx_time = tx["block_time"]
+
+            if tx_time is None or tx_time >= cutoff_timestamp:
+                filtered_txs.append(tx)
+
+        return filtered_txs
+
     def profile_wallet(self, address, days=90):
         """
         Generate comprehensive wallet profile
@@ -925,10 +1109,10 @@ class WalletProfiler:
         Returns:
             dict: Comprehensive wallet profile
         """
-        self.logger.info(f"Generating comprehensive profile for wallet {address}")
+        logger.info(f"Generating comprehensive profile for wallet {address}")
         
         # Get transactions for this wallet
-        transactions = helius_collector.get_account_transactions(address, days=days)
+        transactions = self._fetch_transactions(address, days=days)
         transactions_df = pd.DataFrame(transactions)
         
         # Extract wallet features

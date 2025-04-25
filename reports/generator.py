@@ -1,6 +1,8 @@
 """
 Report generator for creating detailed security reports
 """
+import matplotlib
+matplotlib.use('Agg') # Set backend before importing pyplot
 import os # Added missing import
 import sys # Added missing import
 import logging # Added missing import
@@ -1579,6 +1581,25 @@ class ReportGenerator:
 
     def generate_dusting_report(self, target, data):
         return generate_dusting_report(target, data) # Call module-level function
+
+    def _generate_plot(self, data, title, xlabel, ylabel, filename):
+        """Helper function to generate and save a plot."""
+        try:
+            plt.figure(figsize=(10, 6))
+            # Add plotting logic based on 'data' structure
+            # Example: plt.plot(data['x'], data['y'])
+            plt.title(title)
+            plt.xlabel(xlabel)
+            plt.ylabel(ylabel)
+            plt.grid(True)
+            filepath = os.path.join(REPORTS_DIR, filename)
+            plt.savefig(filepath)
+            plt.close() # Close the figure to free memory
+            logger.info(f"Generated plot: {filepath}")
+            return filename # Return relative filename for markdown link
+        except Exception as e:
+            logger.error(f"Error generating plot {filename}: {e}")
+            return None
 
 if __name__ == "__main__":
     # For testing

@@ -109,7 +109,7 @@ def init_analyzers():
     laundering_detector = MoneyLaunderingAnalyzer()  # No parameters
     rugpull_detector = RugpullDetector()  # No parameters - doesn't accept DB_PATH
     mixer_detector = MixerDetector()  # No parameters
-    dusting_analyzer = DustingAnalyzer(db_path)  # Pass db_path if required
+    dusting_analyzer = DustingAnalyzer(db_path)  # Pass db_path, AIAnalyzer is internal
     transaction_analyzer = TransactionAnalyzer(db_path)  # Pass db_path if required
     wallet_profiler = WalletProfiler(db_path)  # Pass db_path if required
 
@@ -218,8 +218,8 @@ def analyze_money_laundering(args):
     logger.info(f"Running money laundering detection for address {args.address}")
     
     try:
-        # Perform analysis - Assuming detect_money_laundering method exists
-        result = laundering_detector.analyze(args.address, days=args.days) # Assuming analyze method exists
+        # Perform analysis - Pass 'days' argument now
+        result = laundering_detector.analyze(args.address, days=args.days) # Pass days
         
         # Generate report - Assuming generate_ml_report method exists
         # report_path = laundering_detector.generate_ml_report(detection_result=result)
@@ -234,9 +234,14 @@ def analyze_money_laundering(args):
         print(f"Address: {args.address}")
         # print(f"Is Money Laundering: {'Yes' if result.get('is_money_laundering') else 'No'}") # Needs final determination
         print(f"Risk Score: {result.get('risk_score', 0):.1f}/100")
-        print(f"Risk Level: {result.get('risk_level', 'unknown')}")
-        print(f"Detected Patterns: {len(result.get('patterns', {}).get('detected_patterns', [])) if result.get('patterns') else 0}")
-        print(f"Mixer Interaction: {'Yes' if result.get('mixer_interaction', {}).get('detected') else 'No'}")
+        # Determine risk level based on score
+        risk_score = result.get('risk_score', 0)
+        risk_level = "low"
+        if risk_score >= 70: risk_level = "high"
+        elif risk_score >= 40: risk_level = "medium"
+        print(f"Risk Level: {risk_level}") # Updated risk level calculation
+        print(f"Detected Patterns: {len(result.get('flow_patterns', []))}") # Use flow_patterns
+        print(f"Mixer Interaction: {'Yes' if any(cp.get('is_mixer') for cp in result.get('counterparties', [])) else 'No'}") # Check counterparties
         # print(f"Wallet Type: {result.get('wallet_classification', 'unknown')}") # Needs wallet classification logic
         # print(f"Laundering Routes: {len(result.get('money_laundering_routes', []))}") # Needs route detection logic
         if report_path:
@@ -515,6 +520,7 @@ def main():
     # Mixer detection
     mixer_parser = subparsers.add_parser('mixer', help='Detect mixer')
     mixer_parser.add_argument('--address', required=True, help='Wallet address')
+    mixer_parser.add_argument('--days', type=int, default=30, help='Number of days to analyze') # Added days argument
     
     # Dusting analysis
     dusting_parser = subparsers.add_parser('dusting', help='Analyze dusting attacks')
