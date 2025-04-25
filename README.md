@@ -12,111 +12,141 @@
   </p>
 </div>
 
+---
+
 ## 📋 Overview
 
 Sentinel AI is an advanced security analysis platform that leverages machine learning and data analysis to detect and investigate security threats on the Solana blockchain. Our platform combines blockchain data with AI-powered insights to identify patterns associated with various security risks, including money laundering, mixing services, rugpulls, and address poisoning attacks.
 
+---
+
 ## ✨ Key Features
 
-| Feature | Description |
-|---------|-------------|
-| **📊 ICO Analysis** | Analyze token launches to identify suspicious patterns and fund flows |
-| **🚩 Rugpull Detection** | Identify potential rugpulls before they happen |
-| **💰 Money Laundering Detection** | Detect sophisticated laundering techniques |
-| **🔄 Mixer Detection** | Identify cryptocurrency mixing services |
-| **🎯 Address Poisoning Analysis** | Detect dusting campaigns targeting specific addresses |
-| **👤 Wallet Profiling** | Generate comprehensive profiles of wallet behavior |
-| **📝 Transaction Analysis** | Analyze transaction patterns and detect suspicious activities |
+| Feature                     | Description                                                      |
+| :-------------------------- | :--------------------------------------------------------------- |
+| **📊 ICO Analysis**         | Analyze token launches to identify suspicious patterns & funds   |
+| **🚩 Rugpull Detection**    | Identify potential rugpulls before they happen                   |
+| **💰 Money Laundering**     | Detect sophisticated laundering techniques (layering, etc.)      |
+| **🔄 Mixer Detection**      | Identify cryptocurrency mixing services & usage patterns         |
+| **🎯 Address Poisoning**    | Detect dusting campaigns & lookalike address attacks             |
+| **👤 Wallet Profiling**    | Generate comprehensive profiles of wallet behavior & classify    |
+| **📝 Transaction Analysis** | Analyze transaction patterns & detect suspicious activities      |
+
+---
 
 ## 🏗️ Architecture
 
-Sentinel is built with a modular architecture consisting of the following components:
-
-### 🧩 Core Components
+Sentinel is built with a modular architecture:
 
 #### 1️⃣ Data Collection Layer
-- Integrates with multiple Solana APIs (Helius, Range, Vybe, RugCheck)
-- Fetches transaction data, token information, and security insights
-- Handles data normalization and storage
+   - Integrates with Solana APIs (Helius, Range, Vybe, RugCheck).
+   - Fetches transaction data, token info, and security insights.
+   - Handles data normalization and storage.
 
 #### 2️⃣ Analysis Modules
-- ICO Analysis: Analyzes token launches and fund flows
-- Rugpull Detector: Identifies potential rugpull scams
-- Money Laundering Detector: Detects sophisticated money laundering techniques
-- Mixer Detector: Identifies mixing services and their patterns
-- Dusting Analyzer: Detects address poisoning and dusting attacks
+   - **ICO Analysis:** Analyzes token launches and fund flows.
+   - **Rugpull Detector:** Identifies potential rugpull scams.
+   - **Money Laundering Detector:** Detects sophisticated laundering techniques.
+   - **Mixer Detector:** Identifies mixing services and patterns.
+   - **Dusting Analyzer:** Detects address poisoning and dusting attacks.
 
 #### 3️⃣ Shared Components
-- Transaction Analyzer: Provides in-depth transaction analysis
-- Wallet Profiler: Classifies wallets based on behavior patterns
+   - **Transaction Analyzer:** Provides in-depth transaction analysis.
+   - **Wallet Profiler:** Classifies wallets based on behavior patterns.
 
 #### 4️⃣ AI Engine
-- Pattern recognition for suspicious transaction flows
-- Entity classification and relationship mapping
-- Risk scoring and anomaly detection
+   - Utilizes OpenAI for pattern recognition, entity classification, risk scoring, and anomaly detection.
+   - Employs custom prompt engineering for specialized analysis tasks.
 
-#### 5️⃣ Web Interface
-- Dashboard for visualization and interaction
-- Report generation and viewing
-- Search capabilities for entities
+#### 5️⃣ Backend API (Flask)
+   - Exposes analysis endpoints for the frontend.
+   - Manages analysis requests and orchestrates module execution.
+   - Serves generated reports.
+
+#### 6️⃣ Frontend Interface (Next.js - *Separate Repository/Directory*)
+   - Provides a user-friendly dashboard for interaction.
+   - Visualizes analysis results and reports.
+   - Includes search capabilities.
+
+---
 
 ## 🔧 Installation
 
 ### Prerequisites
 
 - Python 3.8+
-- SQLite (for local development)
-- API keys for Helius, Range, Vybe, and RugCheck
+- Node.js & npm/yarn (for the separate frontend)
+- SQLite (for local development database)
+- API Keys:
+  - Helius
+  - Range Protocol
+  - Vybe Network
+  - RugCheck.xyz
+  - OpenAI
 
-### Setup
+### Backend Setup (This Repository)
 
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/yourusername/sentinel-ai.git
-   cd sentinel-ai
-   ```
+1.  **Clone the repository:**
+    ```bash
+    git clone https://github.com/yourusername/sentinel-ai.git
+    cd sentinel-ai/sentinel/sentinel # Navigate to the inner sentinel directory
+    ```
 
-2. Create and activate a virtual environment:
-   ```bash
-   python -m venv venv
-   source venv/bin/activate  # On Windows: venv\Scripts\activate
-   ```
+2.  **Create and activate a virtual environment:**
+    ```bash
+    python -m venv venv
+    # Linux/macOS
+    source venv/bin/activate
+    # Windows
+    .\venv\Scripts\activate
+    ```
 
-3. Install dependencies:
-   ```bash
-   pip install -r requirements.txt
-   ```
+3.  **Install Python dependencies:**
+    ```bash
+    pip install -r requirements.txt
+    ```
 
-4. Set up environment variables for API keys:
-   ```bash
-   export HELIUS_API_KEY=your_helius_api_key
-   export RANGE_API_KEY=your_range_api_key
-   export VYBE_API_KEY=your_vybe_api_key
-   export RUGCHECK_API_KEY=your_rugcheck_api_key
-   export OPENAI_API_KEY=your_openai_api_key
-   ```
-   On Windows, use `set` instead of `export`.
+4.  **Set up environment variables:**
+    Create a `.env` file in the `sentinel-ai/sentinel/sentinel` directory with your API keys:
+    ```dotenv
+    # .env
+    HELIUS_API_KEY=your_helius_api_key
+    RANGE_API_KEY=your_range_api_key
+    VYBE_API_KEY=your_vybe_api_key
+    RUGCHECK_API_KEY=your_rugcheck_api_key
+    OPENAI_API_KEY=your_openai_api_key
+
+    # Optional: API Host/Port Configuration
+    # API_HOST=0.0.0.0
+    # API_PORT=5000
+    # API_DEBUG=True
+    # CORS_ORIGINS=http://localhost:3000,http://127.0.0.1:3000
+    ```
+
+---
 
 ## 🚀 Usage
 
-### Command-Line Interface
+### Command-Line Interface (CLI)
 
-Sentinel provides a comprehensive command-line interface for running analyses:
+Run analyses directly from the command line within the `sentinel-ai/sentinel/sentinel` directory (ensure your virtual environment is active).
 
 <details>
 <summary><b>📈 ICO Analysis</b></summary>
 
 ```bash
-python main.py ico --token <token_address> [--days <days>]
+python main.py ico --token <token_mint_address> [--days <days>]
 ```
+*Analyzes a token launch for suspicious activity.*
 </details>
 
 <details>
 <summary><b>⚠️ Rugpull Detection</b></summary>
 
 ```bash
-python main.py rugpull --token <token_address>
+python main.py rugpull --token <token_mint_address>
 ```
+*Assesses the risk of a rugpull for a given token.*
 </details>
 
 <details>
@@ -125,6 +155,7 @@ python main.py rugpull --token <token_address>
 ```bash
 python main.py money-laundering --address <wallet_address> [--days <days>]
 ```
+*Analyzes an address for patterns indicative of money laundering.*
 </details>
 
 <details>
@@ -133,14 +164,16 @@ python main.py money-laundering --address <wallet_address> [--days <days>]
 ```bash
 python main.py mixer --address <wallet_address> [--days <days>]
 ```
+*Identifies if an address belongs to or interacts heavily with known mixing services.*
 </details>
 
 <details>
-<summary><b>💨 Address Poisoning Analysis</b></summary>
+<summary><b>💨 Address Poisoning / Dusting Analysis</b></summary>
 
 ```bash
 python main.py dusting --address <wallet_address> [--days <days>]
 ```
+*Detects dusting attacks and address poisoning attempts targeting an address.*
 </details>
 
 <details>
@@ -149,6 +182,7 @@ python main.py dusting --address <wallet_address> [--days <days>]
 ```bash
 python main.py wallet --address <wallet_address> [--days <days>]
 ```
+*Generates a behavioral profile and classification for a wallet.*
 </details>
 
 <details>
@@ -157,6 +191,7 @@ python main.py wallet --address <wallet_address> [--days <days>]
 ```bash
 python main.py transaction --address <wallet_address> [--days <days>]
 ```
+*Performs a general analysis of an address's transaction patterns for suspicious activity.*
 </details>
 
 <details>
@@ -165,113 +200,107 @@ python main.py transaction --address <wallet_address> [--days <days>]
 ```bash
 python main.py batch --type <analysis_type> [--limit <limit>]
 ```
+*Runs a specific analysis type (e.g., `ico`, `rugpull`) on multiple entities (implementation may vary).*
 </details>
 
-### Web Interface
+### Web API Server
 
-To start the web interface:
+To start the backend API server (which the frontend connects to):
 
 ```bash
 python main.py web [--host <host>] [--port <port>]
+# Example: python main.py web --host 0.0.0.0 --port 5000
 ```
+This starts the Flask server, typically listening on `http://127.0.0.1:5000` by default.
 
-This will start a Flask web server that provides a user-friendly interface for running analyses and viewing reports.
+---
 
 ## 📊 Module Details
 
 ### ICO Analysis 📈
-
-The ICO Analysis module identifies suspicious patterns in token launches by:
-- Tracking fund flows from ICO wallets
-- Analyzing team wallet behavior
-- Monitoring liquidity pool changes
-- Detecting suspicious fund outflows
+- Tracks fund flows from ICO wallets.
+- Analyzes team wallet behavior and token distribution.
+- Monitors liquidity pool creation and changes.
+- Detects suspicious fund outflows and concentration risks.
 
 ### Rugpull Detector 🚩
-
-The Rugpull Detector identifies potential scams by:
-- Analyzing token creator behavior patterns
-- Monitoring liquidity pool changes
-- Tracking token authority abuse
-- Detecting suspicious developer activity
+- Analyzes token creator history and behavior patterns.
+- Monitors liquidity pool locking status and LP token distribution.
+- Tracks token authority changes (mint/freeze).
+- Leverages RugCheck.xyz data for known risks.
 
 ### Money Laundering Detector 💰
-
-The Money Laundering Detector identifies sophisticated techniques by:
-- Detecting complex transaction layering
-- Identifying cross-chain fund routes
-- Analyzing address clustering to link related entities
-- Tracking fund flows from identified illicit sources
+- Detects complex transaction layering and structuring (smurfing).
+- Identifies cross-chain fund movements via bridges.
+- Analyzes address clustering to link related entities.
+- Tracks fund flows involving high-risk counterparties (mixers, sanctioned addresses).
 
 ### Mixer Detector 🔄
+- Identifies interactions with known mixer addresses and programs.
+- Analyzes transaction graphs for mixer-like patterns (e.g., fixed denominations, timed deposits/withdrawals).
+- Assesses the likelihood of an address being part of a mixing service.
 
-The Mixer Detector identifies cryptocurrency mixing services by:
-- Detecting known mixer addresses
-- Identifying mixer-like transaction patterns
-- Analyzing transaction graphs for mixing behavior
-- Generating comprehensive reports on mixer activity
+### Dusting & Address Poisoning Analyzer 🎯
+- Identifies small "dust" transactions sent to many addresses.
+- Detects lookalike addresses used in address poisoning scams.
+- Analyzes transaction patterns consistent with deanonymization attempts.
 
-### Dusting Analyzer 🎯
-
-The Dusting Analyzer detects address poisoning attacks by:
-- Identifying small "dust" transactions across multiple addresses
-- Detecting lookalike addresses (address poisoning)
-- Analyzing transaction patterns consistent with dusting
-- Generating reports on detected dusting campaigns
+---
 
 ## 📝 Examples
 
 <details>
-<summary><b>Example 1: Analyzing a Token for Rugpull Risk</b></summary>
+<summary><b>Example 1: Analyzing USDC for Rugpull Risk (Illustrative)</b></summary>
 
 ```bash
 python main.py rugpull --token EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v
 ```
-
-This will analyze the token and generate a comprehensive report about its rugpull risk.
+*(Expect low risk for established tokens like USDC)*
 </details>
 
 <details>
-<summary><b>Example 2: Detecting Money Laundering Activity</b></summary>
+<summary><b>Example 2: Detecting Money Laundering Activity for a Specific Address</b></summary>
 
 ```bash
+# Replace with an address you want to investigate
 python main.py money-laundering --address VinesRG7K3ubzKLbxXz197c1RHV3cACkvGr9Zca7BSw --days 60
 ```
-
-This will analyze the wallet's transactions over the past 60 days to detect money laundering patterns.
+*Analyzes the wallet's transactions over the past 60 days.*
 </details>
 
 <details>
-<summary><b>Example 3: Batch Analysis of Recent Tokens</b></summary>
+<summary><b>Example 3: Running the Web API Server for Frontend</b></summary>
 
 ```bash
-python main.py batch --type ico --limit 20
+python main.py web --host 0.0.0.0 --port 5000
 ```
-
-This will analyze the 20 most recent token launches for suspicious activity.
+*Starts the API server, making it accessible on your local network.*
 </details>
 
-<details>
-<summary><b>Example 4: Running the Web Interface</b></summary>
-
-```bash
-python main.py web --host 0.0.0.0 --port 8000
-```
-
-This will start the web interface on all network interfaces (accessible from other computers) on port 8000.
-</details>
+---
 
 ## 👥 Contributing
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+Contributions are welcome! Please fork the repository and submit a Pull Request with your proposed changes. Ensure your code follows existing style conventions and includes tests where applicable.
+
+1.  Fork the Project
+2.  Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
+3.  Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
+4.  Push to the Branch (`git push origin feature/AmazingFeature`)
+5.  Open a Pull Request
+
+---
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+This project is licensed under the MIT License - see the `LICENSE` file for details.
+
+---
 
 ## 🙏 Acknowledgements
 
-- Solana Foundation for blockchain infrastructure
-- Helius, Range, Vybe, and RugCheck for providing API access to blockchain data
-- All contributors and supporters of the project#   s e n t i n e l - a i  
- 
+- **Solana Foundation:** For the underlying blockchain technology.
+- **API Providers:** Helius, Range Protocol, Vybe Network, RugCheck.xyz for invaluable blockchain data access.
+- **OpenAI:** For the powerful AI models enabling advanced analysis.
+- **Open Source Community:** For the libraries and tools used in this project.
+- All contributors and supporters.
